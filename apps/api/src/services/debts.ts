@@ -56,6 +56,10 @@ export function toDebtDto(d: DebtItem) {
     acceptedReason: d.acceptedReason,
     reviewDate: d.reviewDate?.toISOString() ?? null,
     archivedAt: d.archivedAt?.toISOString() ?? null,
+    priorityCalculated: d.priorityCalculated,
+    priorityOverride: d.priorityOverride,
+    priorityOverrideReason: d.priorityOverrideReason,
+    priorityEffective: d.priorityEffective,
     createdAt: d.createdAt.toISOString(),
     updatedAt: d.updatedAt.toISOString(),
   };

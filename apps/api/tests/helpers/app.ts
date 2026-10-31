@@ -19,7 +19,7 @@ export function useTestDeps(): PrismaClient {
 
 export async function resetDb(db: PrismaClient) {
   await db.$executeRawUnsafe(
-    'TRUNCATE TABLE debt_event, debt_item, audit_entry, membership, team_member, team, product, app_user RESTART IDENTITY CASCADE',
+    'TRUNCATE TABLE assessment, assessment_model, debt_event, debt_item, audit_entry, membership, team_member, team, product, app_user RESTART IDENTITY CASCADE',
   );
 }
 

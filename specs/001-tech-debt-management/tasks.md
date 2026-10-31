@@ -102,22 +102,22 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 ### Tests für US2
 
-- [ ] T041 [P] [US2] Unit-Tests der Bewertungsberechnung (Kriterien je 1–5, gewichtete Summe, Normalisierung 0–100, Herleitung) in `packages/domain/tests/scoring.test.ts`
-- [ ] T042 [P] [US2] Vertragstests für `/assessment-model`, `/debts/{id}/assessments`, `/debts/{id}/priority-override`, `/priority-list` in `apps/api/tests/contract/assessment.test.ts`
-- [ ] T043 [P] [US2] Integrationstest: Modelländerung löst konsistente Neuberechnung aus; Überschreiben ohne Begründung wird abgelehnt; unbewertete Schulden werden in der Priorisierung getrennt von bewerteten geführt in `apps/api/tests/integration/scoring.test.ts`
-- [ ] T044 [P] [US2] E2E: bewerten, Rangfolge, Überschreiben in `apps/web/tests/e2e/scoring.spec.ts`
+- [x] T041 [P] [US2] Unit-Tests der Bewertungsberechnung (Kriterien je 1–5, gewichtete Summe, Normalisierung 0–100, Herleitung) in `packages/domain/tests/scoring.test.ts`
+- [x] T042 [P] [US2] Vertragstests für `/assessment-model`, `/debts/{id}/assessments`, `/debts/{id}/priority-override`, `/priority-list` in `apps/api/tests/contract/assessment.test.ts`
+- [x] T043 [P] [US2] Integrationstest: Modelländerung löst konsistente Neuberechnung aus; Überschreiben ohne Begründung wird abgelehnt; unbewertete Schulden werden in der Priorisierung getrennt von bewerteten geführt in `apps/api/tests/integration/scoring.test.ts`
+- [x] T044 [P] [US2] E2E: bewerten, Rangfolge, Überschreiben in `apps/web/tests/e2e/scoring.spec.ts`
 
 ### Implementation für US2
 
-- [ ] T045 [P] [US2] Prisma-Modelle `Assessment` (unveränderlich) und `AssessmentModel` (versioniert, ein aktives Modell, Standardkriterien Auswirkung, Risiko, Aufwand, Folgekosten) sowie Felder `priority_calculated`, `priority_override?`, `priority_override_reason?` an `DebtItem` (Indizes auf `priority_calculated` und `priority_override`) in `packages/db/prisma/schema.prisma`; Migration und Seed des Standardmodells
-- [ ] T046 [P] [US2] Bewertungslogik (reine Funktionen) in `packages/domain/src/scoring.ts`
-- [ ] T047 [US2] Assessment-Service: bewerten, Historie, Neuberechnung bei neuer Modellversion, Überschreiben mit Begründung inkl. Verlauf und Audit; Änderungen am Bewertungsmodell werden im Audit festgehalten in `apps/api/src/services/assessment.ts`
-- [ ] T048 [US2] Routen laut Test T042 mit Zod-Schemas (Modell ändern nur admin) in `apps/api/src/app/api/v1/assessment-model/`, `.../debts/[id]/assessments/`, `.../debts/[id]/priority-override/`, `.../priority-list/`
-- [ ] T049 [US2] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
-- [ ] T050 [P] [US2] Frontend: Bewertungsformular mit Herleitung des Werts und Historie in `apps/web/src/components/debt/AssessmentPanel.tsx`
-- [ ] T051 [P] [US2] Frontend: Prioritätsüberschreibung (berechneter und überschriebener Wert getrennt) in `apps/web/src/components/debt/PriorityOverride.tsx`
-- [ ] T052 [P] [US2] Frontend: priorisierte Tilgungsliste (Filter Produkt/Team; unbewertete Schulden getrennt ausgewiesen) in `apps/web/src/app/priorities/page.tsx`
-- [ ] T053 [P] [US2] Frontend: Admin-Seite Bewertungsmodell in `apps/web/src/app/settings/assessment-model/page.tsx`
+- [x] T045 [P] [US2] Prisma-Modelle `Assessment` (unveränderlich) und `AssessmentModel` (versioniert, ein aktives Modell, Standardkriterien Auswirkung, Risiko, Aufwand, Folgekosten) sowie Felder `priority_calculated`, `priority_override?`, `priority_override_reason?` an `DebtItem` (Indizes auf `priority_calculated` und `priority_override`) in `packages/db/prisma/schema.prisma`; Migration (Standardmodell wird bei der ersten Nutzung automatisch angelegt; zusätzlich Prüfregeln und höchstens ein aktives Modell als Datenbank-Constraint; generierte Spalte `priority_effective`) des Standardmodells
+- [x] T046 [P] [US2] Bewertungslogik (reine Funktionen) in `packages/domain/src/scoring.ts`
+- [x] T047 [US2] Assessment-Service: bewerten, Historie, Neuberechnung bei neuer Modellversion, Überschreiben mit Begründung inkl. Verlauf und Audit; Änderungen am Bewertungsmodell werden im Audit festgehalten in `apps/api/src/services/assessment.ts`
+- [x] T048 [US2] Routen laut Test T042 mit Zod-Schemas (Modell ändern nur admin) in `apps/api/src/app/api/v1/assessment-model/`, `.../debts/[id]/assessments/`, `.../debts/[id]/priority-override/`, `.../priority-list/`
+- [x] T049 [US2] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
+- [x] T050 [P] [US2] Frontend: Bewertungsformular mit Herleitung des Werts und Historie in `apps/web/src/components/debt/AssessmentPanel.tsx`
+- [x] T051 [P] [US2] Frontend: Prioritätsüberschreibung (berechneter und überschriebener Wert getrennt) in `apps/web/src/components/debt/PriorityOverride.tsx`
+- [x] T052 [P] [US2] Frontend: priorisierte Tilgungsliste (Filter Produkt; der Teamfilter folgt mit der Teamverwaltung in US6; unbewertete Schulden getrennt ausgewiesen) in `apps/web/src/app/priorities/page.tsx`
+- [x] T053 [P] [US2] Frontend: Admin-Seite Bewertungsmodell in `apps/web/src/app/settings/assessment-model/page.tsx`
 
 **Checkpoint**: US1 und US2 funktionieren gemeinsam und einzeln.
 

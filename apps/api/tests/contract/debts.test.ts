@@ -116,6 +116,21 @@ describe('debts API contract', () => {
     expect((await withReason.json()).acceptedReason).toBe('Wird abgelöst');
   });
 
+  it('GET /debts accepts sort=-priority (unassessed last)', async () => {
+    await db.debtItem.createMany({
+      data: [
+        { productId, title: 'ohne', kind: 'technical' },
+        { productId, title: 'niedrig', kind: 'technical', priorityCalculated: 10 },
+        { productId, title: 'hoch', kind: 'technical', priorityCalculated: 90 },
+      ],
+    });
+    const res = await call(listDebts, '/debts?sort=-priority', 'reader');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.items.map((i: { title: string }) => i.title)).toEqual(['hoch', 'niedrig', 'ohne']);
+    assertMatchesContract('get', '/debts', 200, body);
+  });
+
   it('returns 404 for unknown debts', async () => {
     const res = await call(getDebt, '/debts/nope', 'reader', {}, { id: 'nope' });
     expect(res.status).toBe(404);

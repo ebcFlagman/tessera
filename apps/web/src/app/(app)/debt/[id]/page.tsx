@@ -2,7 +2,9 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { use } from 'react';
+import { AssessmentPanel } from '@/components/debt/AssessmentPanel';
 import { DebtForm, type DebtFormValues } from '@/components/debt/DebtForm';
+import { PriorityOverride } from '@/components/debt/PriorityOverride';
 import { statusLabels } from '@/components/debt/labels';
 import { ErrorState, Loading } from '@/components/shell/states';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
@@ -64,6 +66,8 @@ export default function DebtDetailPage({ params }: { params: Promise<{ id: strin
           await qc.invalidateQueries({ queryKey: ['debts'] });
         }}
       />
+      <PriorityOverride debtId={id} priority={d} />
+      <AssessmentPanel debtId={id} />
       <h2>Verlauf</h2>
       <ul>
         {d.events.map((e) => (
@@ -84,7 +88,13 @@ export default function DebtDetailPage({ params }: { params: Promise<{ id: strin
                 ? 'angelegt'
                 : e.type === 'archived'
                   ? 'archiviert'
-                  : `geändert (${Object.keys(e.changes).join(', ')})`}
+                  : e.type === 'assessed'
+                    ? 'bewertet'
+                    : e.type === 'priority_overridden'
+                      ? 'Priorität überschrieben'
+                      : e.type === 'priority_override_removed'
+                        ? 'Überschreibung entfernt'
+                        : `geändert (${Object.keys(e.changes).join(', ')})`}
           </li>
         ))}
       </ul>

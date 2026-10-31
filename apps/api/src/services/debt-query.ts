@@ -8,7 +8,15 @@ export interface DebtQuery {
   productId?: string | undefined;
   ownerId?: string | undefined;
   includeArchived: boolean;
-  sort: 'createdAt' | '-createdAt' | 'title' | '-title' | 'status' | '-status';
+  sort:
+    | 'createdAt'
+    | '-createdAt'
+    | 'title'
+    | '-title'
+    | 'status'
+    | '-status'
+    | 'priority'
+    | '-priority';
   cursor?: string | undefined;
   limit: number;
 }
@@ -31,10 +39,15 @@ export async function queryDebts(db: PrismaClient, query: DebtQuery) {
       : {}),
   };
   const desc = query.sort.startsWith('-');
-  const field = query.sort.replace('-', '') as 'createdAt' | 'title' | 'status';
+  const field = query.sort.replace('-', '') as 'createdAt' | 'title' | 'status' | 'priority';
+  const order: Prisma.DebtItemOrderByWithRelationInput =
+    field === 'priority'
+      ? // not assessed debts always come last
+        { priorityEffective: { sort: desc ? 'desc' : 'asc', nulls: 'last' } }
+      : { [field]: desc ? 'desc' : 'asc' };
   const rows = await db.debtItem.findMany({
     where,
-    orderBy: [{ [field]: desc ? 'desc' : 'asc' }, { id: 'asc' }],
+    orderBy: [order, { id: 'asc' }],
     take: query.limit + 1,
     ...(query.cursor ? { cursor: { id: query.cursor }, skip: 0 } : {}),
   });

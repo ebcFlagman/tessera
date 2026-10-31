@@ -17,7 +17,9 @@ export default function RegisterPage() {
   const [kind, setKind] = useState<Kind | ''>('');
   const [status, setStatus] = useState<Status | ''>('');
   const [productId, setProductId] = useState('');
-  const [sort, setSort] = useState<'-createdAt' | 'createdAt' | 'title' | 'status'>('-createdAt');
+  const [sort, setSort] = useState<'-createdAt' | 'createdAt' | 'title' | 'status' | '-priority'>(
+    '-createdAt',
+  );
 
   const products = useQuery({
     queryKey: ['products'],
@@ -107,6 +109,7 @@ export default function RegisterPage() {
             <option value="createdAt">Älteste zuerst</option>
             <option value="title">Titel</option>
             <option value="status">Status</option>
+            <option value="-priority">Priorität (hoch zuerst)</option>
           </select>
         </label>
       </form>
@@ -124,6 +127,7 @@ export default function RegisterPage() {
               <th>Art</th>
               <th>Status</th>
               <th>Produkt</th>
+              <th>Priorität</th>
             </tr>
           </thead>
           <tbody>
@@ -135,6 +139,7 @@ export default function RegisterPage() {
                 <td>{kindLabels[d.kind]}</td>
                 <td>{statusLabels[d.status]}</td>
                 <td>{productName(d.productId)}</td>
+                <td>{d.priorityEffective ?? '–'}</td>
               </tr>
             ))}
           </tbody>

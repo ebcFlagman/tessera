@@ -27,11 +27,17 @@ export default async function setup() {
 
   const url = `postgresql://tessera:tessera@localhost:${PORT}/tessera_test`;
   process.env.DATABASE_URL = url;
-  execFileSync('pnpm', ['exec', 'prisma', 'migrate', 'deploy'], {
-    cwd: resolve(__dirname, '../../../../packages/db'),
-    env: { ...process.env, DATABASE_URL: url },
-    stdio: 'pipe',
-  });
+  try {
+    execFileSync('pnpm', ['exec', 'prisma', 'migrate', 'deploy'], {
+      cwd: resolve(__dirname, '../../../../packages/db'),
+      env: { ...process.env, DATABASE_URL: url },
+      stdio: 'pipe',
+    });
+  } catch (e) {
+    await pg.stop();
+    const err = e as { stdout?: Buffer; stderr?: Buffer };
+    throw new Error(`prisma migrate deploy failed:\n${err.stdout}\n${err.stderr}`);
+  }
 
   return async () => {
     await pg.stop();

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { login } from './helpers';
 
 /**
  * Needs the dev stack: `docker compose -f deploy/docker-compose.dev.yml up -d`, migrated + seeded
@@ -8,11 +9,7 @@ test('Schuld erfassen, im Register finden, Status ändern und Verlauf prüfen', 
   // unique per run so the test can be repeated against the same database
   const title = `E2E ${Date.now()}: Modul A ist eng gekoppelt`;
 
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Anmelden' }).click();
-  await page.locator('input[name="username"]').fill('editor');
-  await page.locator('input[name="password"]').fill('editor');
-  await page.getByRole('button', { name: /sign in/i }).click();
+  await login(page);
 
   await page.getByRole('link', { name: 'Neue Schuld erfassen' }).click();
   await page.getByLabel('Produkt').selectOption({ label: 'Plattform' });

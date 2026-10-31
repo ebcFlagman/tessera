@@ -40,15 +40,17 @@ model Product {
 
 /// Mirror of the OIDC identity; `subject` is the Keycloak `sub` claim.
 model User {
-  id          String       @id @default(cuid())
-  subject     String       @unique
+  assessments Assessment[]
+  models      AssessmentModel[]
+  id          String            @id @default(cuid())
+  subject     String            @unique
   name        String
   email       String?
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
   memberships Membership[]
   teams       TeamMember[]
-  ownedDebts  DebtItem[]   @relation("DebtOwner")
+  ownedDebts  DebtItem[]        @relation("DebtOwner")
 
   @@map("app_user")
 }
@@ -104,31 +106,42 @@ model AuditEntry {
 }
 
 model DebtItem {
-  id               String     @id @default(cuid())
-  productId        String     @map("product_id")
-  title            String     @db.VarChar(200)
-  description      String?
-  kind             DebtKind
-  status           DebtStatus @default(open)
-  ownerId          String?    @map("owner_id")
-  teamId           String?    @map("team_id")
+  id                     String     @id @default(cuid())
+  productId              String     @map("product_id")
+  title                  String     @db.VarChar(200)
+  description            String?
+  kind                   DebtKind
+  status                 DebtStatus @default(open)
+  ownerId                String?    @map("owner_id")
+  teamId                 String?    @map("team_id")
   /// person-days
-  effortEstimate   Float?     @map("effort_estimate")
+  effortEstimate         Float?     @map("effort_estimate")
   /// person-days per month
-  interestEstimate Float?     @map("interest_estimate")
-  acceptedReason   String?    @map("accepted_reason")
-  reviewDate       DateTime?  @map("review_date")
-  archivedAt       DateTime?  @map("archived_at")
+  interestEstimate       Float?     @map("interest_estimate")
+  acceptedReason         String?    @map("accepted_reason")
+  reviewDate             DateTime?  @map("review_date")
+  archivedAt             DateTime?  @map("archived_at")
+  /// 0–100 from the latest assessment under the active model; null = not assessed
+  priorityCalculated     Float?     @map("priority_calculated")
+  /// manual override (needs a reason)
+  priorityOverride       Float?     @map("priority_override")
+  priorityOverrideReason String?    @map("priority_override_reason")
+  /// generated in SQL: COALESCE(priority_override, priority_calculated); never written by the app
+  priorityEffective      Float?     @map("priority_effective")
   /// field name -> "source" | "manual" (import must not overwrite manual fields)
-  fieldOrigin      Json       @default("{}") @map("field_origin")
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
+  fieldOrigin            Json       @default("{}") @map("field_origin")
+  createdAt              DateTime   @default(now()) @map("created_at")
+  updatedAt              DateTime   @updatedAt @map("updated_at")
 
-  product Product      @relation(fields: [productId], references: [id])
-  owner   User?        @relation("DebtOwner", fields: [ownerId], references: [id])
-  team    Team?        @relation(fields: [teamId], references: [id])
-  events  DebtEvent[]
+  product     Product      @relation(fields: [productId], references: [id])
+  owner       User?        @relation("DebtOwner", fields: [ownerId], references: [id])
+  team        Team?        @relation(fields: [teamId], references: [id])
+  events      DebtEvent[]
+  assessments Assessment[]
 
+  @@index([priorityCalculated])
+  @@index([priorityOverride])
+  @@index([priorityEffective])
   @@index([productId, status])
   @@index([kind])
   @@index([ownerId])
@@ -148,4 +161,40 @@ model DebtEvent {
 
   @@index([debtId, at])
   @@map("debt_event")
+}
+
+/// Versioned scoring model. Exactly one row is active (partial unique index in the migration).
+model AssessmentModel {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  /// [{ key, name, weight, direction }]
+  criteria  Json
+  active    Boolean  @default(false)
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  author      User?        @relation(fields: [createdBy], references: [id])
+  assessments Assessment[]
+
+  @@map("assessment_model")
+}
+
+/// Immutable record of one assessment (history, FR-005).
+model Assessment {
+  id                 String   @id @default(cuid())
+  debtId             String   @map("debt_id")
+  modelId            String   @map("model_id")
+  /// criterion key -> 1..5
+  scores             Json
+  priorityCalculated Float    @map("priority_calculated")
+  comment            String?
+  assessedBy         String?  @map("assessed_by")
+  assessedAt         DateTime @default(now()) @map("assessed_at")
+
+  debt     DebtItem        @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  model    AssessmentModel @relation(fields: [modelId], references: [id])
+  assessor User?           @relation(fields: [assessedBy], references: [id])
+
+  @@index([debtId, assessedAt])
+  @@map("assessment")
 }

@@ -21,6 +21,16 @@ export const DebtSchema = z
     acceptedReason: z.string().nullable(),
     reviewDate: z.string().datetime().nullable(),
     archivedAt: z.string().datetime().nullable(),
+    priorityCalculated: z
+      .number()
+      .nullable()
+      .openapi({ description: '0–100, null = nicht bewertet' }),
+    priorityOverride: z.number().nullable(),
+    priorityOverrideReason: z.string().nullable(),
+    priorityEffective: z
+      .number()
+      .nullable()
+      .openapi({ description: 'Überschreibung, sonst berechneter Wert' }),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
@@ -81,7 +91,16 @@ export const DebtListQuery = z.object({
   ownerId: z.string().optional(),
   includeArchived: z.enum(['true', 'false']).default('false'),
   sort: z
-    .enum(['createdAt', '-createdAt', 'title', '-title', 'status', '-status'])
+    .enum([
+      'createdAt',
+      '-createdAt',
+      'title',
+      '-title',
+      'status',
+      '-status',
+      'priority',
+      '-priority',
+    ])
     .default('-createdAt'),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
@@ -115,3 +134,90 @@ export const ProductPatchSchema = z
 export const UserSchema = z
   .object({ id: z.string(), name: z.string(), email: z.string().nullable() })
   .openapi('User');
+
+export const CriterionSchema = z
+  .object({
+    key: z.string().trim().min(1).max(40),
+    name: z.string().trim().min(1).max(80),
+    weight: z.number().min(0),
+    direction: z.enum(['up', 'down']).openapi({
+      description:
+        'up: höherer Wert = dringender; down: höherer Wert senkt die Priorität (z. B. Aufwand)',
+    }),
+  })
+  .openapi('Criterion');
+
+export const AssessmentModelSchema = z
+  .object({
+    id: z.string(),
+    version: z.number().int(),
+    criteria: z.array(CriterionSchema),
+    active: z.boolean(),
+    createdAt: z.string().datetime(),
+  })
+  .openapi('AssessmentModel');
+
+export const AssessmentModelInputSchema = z
+  .object({ criteria: z.array(CriterionSchema).min(1) })
+  .openapi('AssessmentModelInput');
+
+export const ModelUpdateResultSchema = z
+  .object({
+    model: AssessmentModelSchema,
+    updated: z.number().int().describe('Schulden, deren Priorität neu berechnet wurde'),
+    needReassessment: z
+      .number()
+      .int()
+      .describe('Schulden ohne Wert für ein neues Kriterium: müssen neu bewertet werden'),
+  })
+  .openapi('ModelUpdateResult');
+
+export const BreakdownItemSchema = z
+  .object({
+    key: z.string(),
+    name: z.string(),
+    score: z.number(),
+    weight: z.number(),
+    normalized: z.number(),
+    contribution: z.number(),
+  })
+  .openapi('BreakdownItem');
+
+export const AssessmentSchema = z
+  .object({
+    id: z.string(),
+    modelVersion: z.number().int(),
+    scores: z.record(z.number()),
+    priorityCalculated: z.number(),
+    breakdown: z.array(BreakdownItemSchema),
+    comment: z.string().nullable(),
+    assessedBy: z.string().nullable(),
+    assessedByName: z.string().nullable(),
+    assessedAt: z.string().datetime(),
+  })
+  .openapi('Assessment');
+
+export const AssessmentInputSchema = z
+  .object({
+    scores: z.record(z.number()).openapi({ description: 'Kriterium → ganze Zahl 1–5' }),
+    comment: z.string().max(2000).nullish(),
+  })
+  .openapi('AssessmentInput');
+
+export const PriorityOverrideInputSchema = z
+  .object({ value: z.number().min(0).max(100), reason: z.string().trim().min(1).max(1000) })
+  .openapi('PriorityOverrideInput');
+
+export const PriorityListQuery = z.object({
+  productId: z.string().optional(),
+  teamId: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+});
+
+export const PriorityListSchema = z
+  .object({
+    ranked: z.array(DebtSchema.extend({ rank: z.number().int() })),
+    unassessed: z.array(DebtSchema),
+    unassessedTotal: z.number().int(),
+  })
+  .openapi('PriorityList');

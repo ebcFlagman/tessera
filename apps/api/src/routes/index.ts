@@ -2,3 +2,4 @@
 // Add new route modules to this list.
 export * as products from './products';
 export * as debts from './debts';
+export * as assessment from './assessment';

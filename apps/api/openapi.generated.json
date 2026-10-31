@@ -227,6 +227,32 @@
             ],
             "format": "date-time"
           },
+          "priorityCalculated": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "0–100, null = nicht bewertet"
+          },
+          "priorityOverride": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "priorityOverrideReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priorityEffective": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Überschreibung, sonst berechneter Wert"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -250,6 +276,10 @@
           "acceptedReason",
           "reviewDate",
           "archivedAt",
+          "priorityCalculated",
+          "priorityOverride",
+          "priorityOverrideReason",
+          "priorityEffective",
           "createdAt",
           "updatedAt"
         ]
@@ -453,6 +483,277 @@
             "description": "true archiviert, false stellt wieder her"
           }
         }
+      },
+      "Criterion": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ],
+            "description": "up: höherer Wert = dringender; down: höherer Wert senkt die Priorität (z. B. Aufwand)"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "weight",
+          "direction"
+        ]
+      },
+      "AssessmentModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "criteria": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Criterion"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "criteria",
+          "active",
+          "createdAt"
+        ]
+      },
+      "ModelUpdateResult": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "$ref": "#/components/schemas/AssessmentModel"
+          },
+          "updated": {
+            "type": "integer",
+            "description": "Schulden, deren Priorität neu berechnet wurde"
+          },
+          "needReassessment": {
+            "type": "integer",
+            "description": "Schulden ohne Wert für ein neues Kriterium: müssen neu bewertet werden"
+          }
+        },
+        "required": [
+          "model",
+          "updated",
+          "needReassessment"
+        ]
+      },
+      "AssessmentModelInput": {
+        "type": "object",
+        "properties": {
+          "criteria": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Criterion"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "criteria"
+        ]
+      },
+      "BreakdownItem": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "weight": {
+            "type": "number"
+          },
+          "normalized": {
+            "type": "number"
+          },
+          "contribution": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "score",
+          "weight",
+          "normalized",
+          "contribution"
+        ]
+      },
+      "Assessment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "modelVersion": {
+            "type": "integer"
+          },
+          "scores": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "priorityCalculated": {
+            "type": "number"
+          },
+          "breakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BreakdownItem"
+            }
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assessedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assessedByName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assessedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "modelVersion",
+          "scores",
+          "priorityCalculated",
+          "breakdown",
+          "comment",
+          "assessedBy",
+          "assessedByName",
+          "assessedAt"
+        ]
+      },
+      "AssessmentInput": {
+        "type": "object",
+        "properties": {
+          "scores": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Kriterium → ganze Zahl 1–5"
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "scores"
+        ]
+      },
+      "PriorityOverrideInput": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "value",
+          "reason"
+        ]
+      },
+      "PriorityList": {
+        "type": "object",
+        "properties": {
+          "ranked": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Debt"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "rank": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "rank"
+                  ]
+                }
+              ]
+            }
+          },
+          "unassessed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Debt"
+            }
+          },
+          "unassessedTotal": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ranked",
+          "unassessed",
+          "unassessedTotal"
+        ]
       }
     },
     "parameters": {}
@@ -832,7 +1133,9 @@
                 "title",
                 "-title",
                 "status",
-                "-status"
+                "-status",
+                "priority",
+                "-priority"
               ],
               "default": "-createdAt"
             },
@@ -1126,6 +1429,531 @@
           },
           "404": {
             "description": "Nicht gefunden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validierungsfehler",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assessment-model": {
+      "get": {
+        "summary": "Aktives Bewertungsmodell",
+        "tags": [
+          "Bewertung"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aktives Modell",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht angemeldet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Keine Berechtigung",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validierungsfehler",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Neue Modellversion anlegen und Prioritäten neu berechnen (Administrator)",
+        "tags": [
+          "Bewertung"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentModelInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Neue Version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelUpdateResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht angemeldet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Keine Berechtigung",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validierungsfehler",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/debts/{id}/assessments": {
+      "get": {
+        "summary": "Bewertungshistorie einer Schuld (neueste zuerst)",
+        "tags": [
+          "Bewertung"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Assessment"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht angemeldet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Keine Berechtigung",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nicht gefunden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validierungsfehler",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Schuld bewerten (Bearbeiter des Produkts)",
+        "tags": [
+          "Bewertung"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bewertung angelegt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assessment"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht angemeldet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Keine Berechtigung",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nicht gefunden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validierungsfehler",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/debts/{id}/priority-override": {
+      "put": {
+        "summary": "Priorität mit Begründung überschreiben",
+        "tags": [
+          "Bewertung"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PriorityOverrideInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Überschrieben",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht angemeldet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Keine Berechtigung",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nicht gefunden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validierungsfehler",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Überschreibung entfernen (zurück zum berechneten Wert)",
+        "tags": [
+          "Bewertung"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entfernt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht angemeldet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Keine Berechtigung",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nicht gefunden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validierungsfehler",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/priority-list": {
+      "get": {
+        "summary": "Priorisierte Tilgungsliste; nicht bewertete Schulden getrennt",
+        "tags": [
+          "Bewertung"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "productId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "teamId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rangfolge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriorityList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nicht angemeldet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Keine Berechtigung",
             "content": {
               "application/json": {
                 "schema": {
