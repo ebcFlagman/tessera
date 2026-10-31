@@ -13,5 +13,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Documentation links resolve
+        run: pnpm check:docs
       - name: Generated OpenAPI spec and API client are up to date
         run: pnpm check:generated

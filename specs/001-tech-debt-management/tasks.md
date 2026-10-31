@@ -129,16 +129,16 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 **Independent Test**: Eine unbeteiligte Person kann nach Lektüre Zweck, Bausteine, Integrationsansatz und die wichtigsten Entscheidungen erklären (SC-008).
 
-- [ ] T054 [US5] Architekturvision (Zielbild, Zielgruppen, Leitprinzipien aus der Constitution, Systemgrenzen, Abgrenzung v1) in `docs/architecture/vision.md`
-- [ ] T055 [P] [US5] Qualitätsziele mit Messgrößen aus spec.md (SC-003, SC-005, SC-006, SC-007) in `docs/architecture/quality-goals.md`
-- [ ] T056 [P] [US5] Systemkontext und Bausteine als Mermaid-Diagramme (web, api, worker, PostgreSQL, Keycloak, SonarCloud, GitLab) in `docs/architecture/context-and-building-blocks.md`
-- [ ] T057 [P] [US5] Integrationskonzept (Connector-Schnittstelle, Abgleichregeln, Feldherkunft, „Quelle getilgt gewinnt“) in `docs/architecture/integration-concept.md`
-- [ ] T058 [P] [US5] ADR-Vorlage (MADR) und Index in `docs/architecture/adr/README.md`, `docs/architecture/adr/0000-template.md`
-- [ ] T059 [P] [US5] ADRs 0001–0004 aus D1–D4 in `specs/001-tech-debt-management/research.md` (Monorepo/zwei Next.js-Apps, Code-First-API, PostgreSQL/Prisma, pg-boss-Worker) in `docs/architecture/adr/`
-- [ ] T060 [P] [US5] ADRs 0005–0008 aus D5–D8 (Keycloak/OIDC, Connector-Plugin-Schnittstelle, Abgleich und Feldherkunft, Bewertungsmodell) in `docs/architecture/adr/`
-- [ ] T061 [P] [US5] ADRs 0009–0012 aus D9–D12 (Geheimnisse, Snapshots, Teststrategie, Dokumentationsansatz) in `docs/architecture/adr/`
-- [ ] T062 [US5] Vision verlinkt alle ADRs und Qualitätsziele; README verweist auf `docs/architecture/` in `docs/architecture/vision.md`, `README.md`
-- [ ] T063 [US5] Dokumentationsprüfung: Link-Check der Markdown-Dateien in CI in `.github/workflows/ci.yml`
+- [x] T054 [US5] Architekturvision (Zielbild, Zielgruppen, Leitprinzipien aus der Constitution, Systemgrenzen, Abgrenzung v1) in `docs/architecture/vision.md`
+- [x] T055 [P] [US5] Qualitätsziele mit Messgrößen aus spec.md (SC-003, SC-005, SC-006, SC-007) in `docs/architecture/quality-goals.md`
+- [x] T056 [P] [US5] Systemkontext und Bausteine als Mermaid-Diagramme (web, api, worker, PostgreSQL, Keycloak, SonarCloud, GitLab) in `docs/architecture/context-and-building-blocks.md`
+- [x] T057 [P] [US5] Integrationskonzept (Connector-Schnittstelle, Abgleichregeln, Feldherkunft, „Quelle getilgt gewinnt“) in `docs/architecture/integration-concept.md`
+- [x] T058 [P] [US5] ADR-Vorlage (MADR) und Index in `docs/architecture/adr/README.md`, `docs/architecture/adr/0000-template.md`
+- [x] T059 [P] [US5] ADRs 0001–0004 aus D1–D4 in `specs/001-tech-debt-management/research.md` (Monorepo/zwei Next.js-Apps, Code-First-API, PostgreSQL/Prisma, pg-boss-Worker) in `docs/architecture/adr/`
+- [x] T060 [P] [US5] ADRs 0005–0008 aus D5–D8 (Keycloak/OIDC, Connector-Plugin-Schnittstelle, Abgleich und Feldherkunft, Bewertungsmodell) in `docs/architecture/adr/`
+- [x] T061 [P] [US5] ADRs 0009–0012 aus D9–D12 (Geheimnisse, Snapshots, Teststrategie, Dokumentationsansatz) in `docs/architecture/adr/`
+- [x] T062 [US5] Vision verlinkt alle ADRs und Qualitätsziele; README verweist auf `docs/architecture/` in `docs/architecture/vision.md`, `README.md`
+- [x] T063 [US5] Dokumentationsprüfung: Link-Check der Markdown-Dateien in CI in `.github/workflows/ci.yml`
 
 **Checkpoint**: Dokumentation vollständig und verlinkt.
 

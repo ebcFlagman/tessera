@@ -18,7 +18,8 @@
     "openapi:generate": "pnpm --filter @tessera/api openapi:generate",
     "api-types:generate": "pnpm --filter @tessera/api-types generate",
     "check:generated": "bash scripts/check-generated.sh",
-    "test:scripts": "bash scripts/test-check-generated.sh"
+    "test:scripts": "bash scripts/test-check-generated.sh && bash scripts/test-check-doc-links.sh",
+    "check:docs": "node scripts/check-doc-links.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
