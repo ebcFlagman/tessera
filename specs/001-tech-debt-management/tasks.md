@@ -72,7 +72,7 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 - [x] T024 [P] [US1] Unit-Tests der Zustandsübergänge (open → planned → in_progress → repaid; open/planned → accepted; repaid → open; `accepted` erfordert `accepted_reason`) in `packages/domain/tests/debt-status.test.ts`
 - [x] T025 [P] [US1] Vertragstest `GET/POST /debts`, `GET/PATCH /debts/{id}` in `apps/api/tests/contract/debts.test.ts`
 - [x] T026 [P] [US1] Integrationstest Register: Filter (Art, Status, Produkt, Verantwortlicher; die Filter Priorität und Quelle folgen mit US2 bzw. US3), Suche, Sortierung, Cursor-Paginierung in `apps/api/tests/integration/debt-register.test.ts`
-- [ ] T027 [P] [US1] E2E: Schuld mit Aufwand und Folgekosten anlegen, Verantwortlichen auswählen, filtern, Status ändern, Verlauf prüfen in `apps/web/tests/e2e/register.spec.ts`
+- [x] T027 [P] [US1] E2E: Schuld mit Aufwand und Folgekosten anlegen, Verantwortlichen auswählen, filtern, Status ändern, Verlauf prüfen in `apps/web/tests/e2e/register.spec.ts`
 - [x] T028 [P] [US1] Vertragstests `GET /users`, `PATCH /products/{id}` (Umbenennen, Archivieren inkl. Folgewirkung auf Schulden) in `apps/api/tests/contract/products-users.test.ts`
 
 ### Implementation für US1

@@ -7,8 +7,8 @@ import { expect, test } from '@playwright/test';
 test('Schuld erfassen, im Register finden, Status ändern und Verlauf prüfen', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Anmelden' }).click();
-  await page.getByLabel(/username/i).fill('editor');
-  await page.getByLabel(/password/i).fill('editor');
+  await page.locator('input[name="username"]').fill('editor');
+  await page.locator('input[name="password"]').fill('editor');
   await page.getByRole('button', { name: /sign in/i }).click();
 
   await page.getByRole('link', { name: 'Neue Schuld erfassen' }).click();
