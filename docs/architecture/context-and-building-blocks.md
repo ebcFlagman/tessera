@@ -47,15 +47,15 @@ flowchart TB
 
 ### Pakete und Verantwortung
 
-| Baustein    | Pfad                  | Verantwortung                                                                                                                                       | Stand                                                         |
-| ----------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Web         | `apps/web`            | Oberfläche (Dashboard, Register, Detail, Prioritäten, Integrationen, Modellpflege), Login per Auth.js, ruft die API nur über den generierten Client | umgesetzt (Register, Bewertung); Dashboard/Verwaltung geplant |
-| API         | `apps/api`            | Routen mit Zod-Schemas, Rechteprüfung, Services; erzeugt die OpenAPI-Spezifikation                                                                  | umgesetzt für Produkte, Benutzer, Schulden, Bewertung         |
-| Worker      | `apps/worker`         | Importjobs, Zeitpläne, Tages-Snapshots (pg-boss)                                                                                                    | umgesetzt (Importjobs, Zeitplan, Tages-Snapshots)             |
-| Domäne      | `packages/domain`     | reine Fachlogik: Statusregeln, Bewertung, Fehler                                                                                                    | umgesetzt; Abgleich geplant                                   |
-| Datenbank   | `packages/db`         | Prisma-Schema, Migrationen, Seed                                                                                                                    | umgesetzt                                                     |
-| Connectoren | `packages/connectors` | Schnittstelle und Quellen (SonarCloud, GitLab)                                                                                                      | umgesetzt (SonarCloud, GitLab Cloud)                          |
-| API-Typen   | `packages/api-types`  | aus der OpenAPI-Spezifikation generierte Typen                                                                                                      | umgesetzt (generiert)                                         |
+| Baustein    | Pfad                  | Verantwortung                                                                                                                                                                 | Stand                                                         |
+| ----------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Web         | `apps/web`            | Oberfläche (Dashboard, Register, Detail, Prioritäten, Integrationen, Modellpflege, Rollen, Teams, Protokoll), Login per Auth.js, ruft die API nur über den generierten Client | umgesetzt (Register, Bewertung); Dashboard/Verwaltung geplant |
+| API         | `apps/api`            | Routen mit Zod-Schemas, Rechteprüfung, Services; erzeugt die OpenAPI-Spezifikation                                                                                            | umgesetzt für Produkte, Benutzer, Schulden, Bewertung         |
+| Worker      | `apps/worker`         | Importjobs, Zeitpläne, Tages-Snapshots (pg-boss)                                                                                                                              | umgesetzt (Importjobs, Zeitplan, Tages-Snapshots)             |
+| Domäne      | `packages/domain`     | reine Fachlogik: Statusregeln, Bewertung, Fehler                                                                                                                              | umgesetzt; Abgleich geplant                                   |
+| Datenbank   | `packages/db`         | Prisma-Schema, Migrationen, Seed                                                                                                                                              | umgesetzt                                                     |
+| Connectoren | `packages/connectors` | Schnittstelle und Quellen (SonarCloud, GitLab)                                                                                                                                | umgesetzt (SonarCloud, GitLab Cloud)                          |
+| API-Typen   | `packages/api-types`  | aus der OpenAPI-Spezifikation generierte Typen                                                                                                                                | umgesetzt (generiert)                                         |
 
 ### Abhängigkeitsregeln
 

@@ -16,6 +16,9 @@ export async function Shell({ children }: { children: React.ReactNode }) {
           <Link href="/priorities">Prioritäten</Link>
           <Link href="/integrations">Integrationen</Link>
           <Link href="/settings/assessment-model">Bewertungsmodell</Link>
+          <Link href="/settings/members">Rollen</Link>
+          <Link href="/settings/teams">Teams</Link>
+          <Link href="/settings/audit">Protokoll</Link>
         </nav>
         <span style={{ marginLeft: 'auto' }}>
           {session?.user?.name}{' '}

@@ -26,6 +26,7 @@ Keine Passwörter in Tessera, Standardprotokoll, Rollen bleiben in der Hand der 
 - Testrealm mit festen Benutzer-IDs unter `deploy/keycloak`, damit Seed und Realm zusammenpassen.
 - Das Frontend erneuert Access-Tokens über das Refresh-Token; bei Fehler ist eine erneute Anmeldung nötig.
 - Das Backend braucht CORS für den Web-Ursprung (`WEB_ORIGIN`).
+- Rollen ändern nur Administratoren des Produkts, und ein Produkt behält mindestens einen Administrator. Jede Änderung steht im Änderungsprotokoll (`membership.set`, mit alter und neuer Rolle); das Protokoll lesen nur Administratoren.
 
 ## Referenzen
 

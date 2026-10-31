@@ -1,10 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-import {
-  exportDashboardRoute,
-  exportDebtsRoute,
-  getDashboard,
-  getTeams,
-} from '../../src/routes/dashboard';
+import { exportDashboardRoute, exportDebtsRoute, getDashboard } from '../../src/routes/dashboard';
+import { getTeams } from '../../src/routes/admin';
 import { call, resetDb, seedUserWithRole, useTestDeps } from '../helpers/app';
 import { assertMatchesContract } from './setup';
 
@@ -81,7 +77,7 @@ describe('dashboard API', () => {
   it('GET /teams lists teams for the filter', async () => {
     const res = await call(getTeams, '/teams', 'reader');
     const body = await res.json();
-    expect(body).toEqual([{ id: expect.any(String), name: 'Alpha' }]);
+    expect(body).toEqual([{ id: expect.any(String), name: 'Alpha', members: [] }]);
     assertMatchesContract('get', '/teams', 200, body);
   });
 });

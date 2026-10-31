@@ -369,7 +369,72 @@ export const DashboardSchema = z
   })
   .openapi('Dashboard');
 
-export const TeamSchema = z.object({ id: z.string(), name: z.string() }).openapi('Team');
+export const TeamSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    members: z.array(z.object({ id: z.string(), name: z.string() })),
+  })
+  .openapi('Team');
+
+export const TeamInputSchema = z
+  .object({ name: z.string().trim().min(1).max(100) })
+  .openapi('TeamInput');
+
+export const TeamMembersInputSchema = z
+  .object({
+    userIds: z.array(z.string().min(1)).max(500).describe('Die vollständige neue Mitgliederliste'),
+  })
+  .openapi('TeamMembersInput');
+
+export const MemberSchema = z
+  .object({
+    userId: z.string(),
+    name: z.string(),
+    email: z.string().nullable(),
+    role: z.enum(['admin', 'editor']),
+  })
+  .openapi('Member');
+
+export const MemberInputSchema = z
+  .object({
+    userId: z.string().min(1),
+    role: z.enum(['admin', 'editor']).nullable().describe('null entfernt die Rolle'),
+  })
+  .openapi('MemberInput');
+
+export const AuditEntrySchema = z
+  .object({
+    id: z.string(),
+    at: z.string().datetime(),
+    actorId: z.string().nullable(),
+    actorName: z.string().nullable(),
+    action: z.string().describe('z. B. membership.set, integration.updated'),
+    targetType: z.string(),
+    targetId: z.string(),
+    details: z.record(z.unknown()).describe('Nie mit Zugangsdaten oder anderen Geheimnissen'),
+  })
+  .openapi('AuditEntry');
+
+export const AuditQuerySchema = z.object({
+  action: z.string().optional(),
+  targetType: z.string().optional(),
+  actorId: z.string().optional(),
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format JJJJ-MM-TT')
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format JJJJ-MM-TT')
+    .optional(),
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+});
+
+export const AuditListSchema = z
+  .object({ items: z.array(AuditEntrySchema), nextCursor: z.string().nullable() })
+  .openapi('AuditList');
 
 export const ExportDebtsQuery = DebtListQuery.pick({
   q: true,

@@ -79,6 +79,19 @@ export function toEventDto(e: DebtEvent & { actorName?: string | null }) {
   };
 }
 
+/** Owner and team must exist; otherwise the database would fail with an unreadable error. */
+async function assertReferences(
+  db: PrismaClient,
+  refs: { ownerId?: string | null | undefined; teamId?: string | null | undefined },
+) {
+  if (refs.ownerId && !(await db.user.findUnique({ where: { id: refs.ownerId } }))) {
+    throw new AppError('validation_failed', 'Der Verantwortliche existiert nicht');
+  }
+  if (refs.teamId && !(await db.team.findUnique({ where: { id: refs.teamId } }))) {
+    throw new AppError('validation_failed', 'Das Team existiert nicht');
+  }
+}
+
 async function assertProductUsable(db: PrismaClient, productId: string) {
   const product = await db.product.findUnique({ where: { id: productId } });
   if (!product) throw new AppError('not_found', 'Produkt nicht gefunden');
@@ -88,6 +101,7 @@ async function assertProductUsable(db: PrismaClient, productId: string) {
 export async function createDebt(db: PrismaClient, user: User, input: DebtCreate) {
   await requireProductRole(db, user, input.productId, 'editor');
   await assertProductUsable(db, input.productId);
+  await assertReferences(db, input);
   return db.$transaction(async (tx) => {
     const debt = await tx.debtItem.create({
       data: {
@@ -118,6 +132,7 @@ export async function updateDebt(db: PrismaClient, user: User, id: string, patch
   const current = await db.debtItem.findUnique({ where: { id } });
   if (!current) throw new AppError('not_found', 'Schuld nicht gefunden');
   await requireProductRole(db, user, current.productId, 'editor');
+  await assertReferences(db, patch);
 
   const nextStatus = patch.status ?? current.status;
   const nextReason =

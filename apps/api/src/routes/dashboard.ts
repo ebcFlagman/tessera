@@ -1,8 +1,7 @@
 import { defineRoute } from '../openapi/route';
-import { z } from '../openapi/zod';
 import { dashboard } from '../services/dashboard';
 import { exportDashboard, exportDebts } from '../services/export';
-import { DashboardQuerySchema, DashboardSchema, ExportDebtsQuery, TeamSchema } from './schemas';
+import { DashboardQuerySchema, DashboardSchema, ExportDebtsQuery } from './schemas';
 
 export const getDashboard = defineRoute(
   {
@@ -14,18 +13,6 @@ export const getDashboard = defineRoute(
     success: { status: 200, schema: DashboardSchema, description: 'Kennzahlen und Verlauf' },
   },
   ({ db, query }) => dashboard(db, query),
-);
-
-export const getTeams = defineRoute(
-  {
-    method: 'get',
-    path: '/teams',
-    summary: 'Teams (für Filter)',
-    tags: ['Dashboard'],
-    success: { status: 200, schema: z.array(TeamSchema), description: 'Teams' },
-  },
-  async ({ db }) =>
-    (await db.team.findMany({ orderBy: { name: 'asc' } })).map((t) => ({ id: t.id, name: t.name })),
 );
 
 export const exportDebtsRoute = defineRoute(

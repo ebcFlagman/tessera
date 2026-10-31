@@ -210,17 +210,17 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 **Independent Test**: Verschiedene Rollen versuchen dieselben Aktionen; Protokoll zeigt Wer/Wann/Was ohne Zugangsdaten (quickstart Szenario 5).
 
-- [ ] T097 [P] [US6] Vertragstests `/products/{id}/members`, `/audit-log` in `apps/api/tests/contract/members-audit.test.ts`
-- [ ] T098 [P] [US6] Integrationstest: Audit-Einträge für Rollen-, Integrations- und Modelländerungen; keine Geheimnisse im Protokoll (SC-007) in `apps/api/tests/integration/audit.test.ts`
-- [ ] T099 [P] [US6] Vertragstests und Integrationstest für Teams (`/teams`, Mitglieder; Filter nach Team in Prioritätsliste und Dashboard) in `apps/api/tests/contract/teams.test.ts`
-- [ ] T100 [US6] Member-Service (Rollen setzen, nur admin) in `apps/api/src/services/members.ts`
-- [ ] T101 [US6] Routen `GET/PUT /api/v1/products/{id}/members`, `GET /api/v1/audit-log` (nur admin) in `apps/api/src/app/api/v1/products/[id]/members/route.ts`, `.../audit-log/route.ts`
-- [ ] T102 [US6] Team-Service und Routen `GET/POST /api/v1/teams`, `PUT /api/v1/teams/{id}/members` (nur admin) in `apps/api/src/services/teams.ts`, `apps/api/src/app/api/v1/teams/`
-- [ ] T103 [US6] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
-- [ ] T104 [P] [US6] Frontend: Rollenverwaltung pro Produkt in `apps/web/src/app/settings/members/page.tsx`
-- [ ] T105 [P] [US6] Frontend: Teamverwaltung in `apps/web/src/app/settings/teams/page.tsx`
-- [ ] T106 [P] [US6] Frontend: Änderungsprotokoll mit Filtern in `apps/web/src/app/settings/audit/page.tsx`
-- [ ] T107 [P] [US6] E2E: Benutzer ohne Rolle darf lesen, aber nicht ändern; verständliche Fehlermeldung in `apps/web/tests/e2e/authorization.spec.ts`
+- [x] T097 [P] [US6] Vertragstests `/products/{id}/members`, `/audit-log` in `apps/api/tests/contract/members-audit.test.ts`
+- [x] T098 [P] [US6] Integrationstest: Audit-Einträge für Rollen-, Integrations- und Modelländerungen; keine Geheimnisse im Protokoll (SC-007) in `apps/api/tests/integration/audit.test.ts`
+- [x] T099 [P] [US6] Vertragstests und Integrationstest für Teams (`/teams`, Mitglieder; Filter nach Team in Prioritätsliste und Dashboard) in `apps/api/tests/contract/teams.test.ts`
+- [x] T100 [US6] Member-Service (Rollen setzen, nur admin) in `apps/api/src/services/members.ts`
+- [x] T101 [US6] Routen `GET/PUT /api/v1/products/{id}/members`, `GET /api/v1/audit-log` (nur admin) in `apps/api/src/app/api/v1/products/[id]/members/route.ts`, `.../audit-log/route.ts`
+- [x] T102 [US6] Team-Service und Routen `GET/POST /api/v1/teams`, `PUT /api/v1/teams/{id}/members` (nur admin) in `apps/api/src/services/teams.ts`, `apps/api/src/app/api/v1/teams/`
+- [x] T103 [US6] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
+- [x] T104 [P] [US6] Frontend: Rollenverwaltung pro Produkt in `apps/web/src/app/settings/members/page.tsx`
+- [x] T105 [P] [US6] Frontend: Teamverwaltung in `apps/web/src/app/settings/teams/page.tsx`
+- [x] T106 [P] [US6] Frontend: Änderungsprotokoll mit Filtern in `apps/web/src/app/settings/audit/page.tsx`
+- [x] T107 [P] [US6] E2E: Benutzer ohne Rolle darf lesen, aber nicht ändern; verständliche Fehlermeldung in `apps/web/tests/e2e/authorization.spec.ts`
 
 ---
 

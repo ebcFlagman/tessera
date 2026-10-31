@@ -90,7 +90,7 @@ Alle Entscheidungen: [ADR-Index](adr/README.md). Qualitätsziele: [quality-goals
 | Anmeldung (Keycloak), generierter API-Client, CI-Prüfung                          | umgesetzt                                                                                                   |
 | Import aus SonarCloud/GitLab, Worker, Zugangsdaten, Zusammenführen von Duplikaten | umgesetzt (geprüft mit Fixtures und einer lokalen Attrappe der Quelle, noch nicht gegen die echten Dienste) |
 | Dashboard, Zeitverlauf, CSV-Export                                                | umgesetzt                                                                                                   |
-| Teamverwaltung, Rollenverwaltung, Auditansicht                                    | geplant                                                                                                     |
+| Teamverwaltung, Rollenverwaltung, Änderungsprotokoll                              | umgesetzt                                                                                                   |
 
 Die Aufgabenliste mit dem genauen Fortschritt steht in
 [tasks.md](../../specs/001-tech-debt-management/tasks.md).

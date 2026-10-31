@@ -12,6 +12,7 @@ export interface DebtFormValues {
   kind: keyof typeof kindLabels;
   status: keyof typeof statusLabels;
   ownerId: string;
+  teamId: string;
   effortEstimate: string;
   interestEstimate: string;
   acceptedReason: string;
@@ -24,6 +25,7 @@ export const emptyDebt: DebtFormValues = {
   kind: 'technical',
   status: 'open',
   ownerId: '',
+  teamId: '',
   effortEstimate: '',
   interestEstimate: '',
   acceptedReason: '',
@@ -61,6 +63,7 @@ export function DebtForm(props: {
     kind: DebtFormValues['kind'];
     status: DebtFormValues['status'];
     ownerId: string | null;
+    teamId: string | null;
     effortEstimate: number | null;
     interestEstimate: number | null;
     acceptedReason: string | null;
@@ -76,6 +79,11 @@ export function DebtForm(props: {
     queryKey: ['products'],
     enabled: ready,
     queryFn: async () => unwrap(await api.GET('/products', { params: { query: {} } })),
+  });
+  const teams = useQuery({
+    queryKey: ['teams'],
+    enabled: ready,
+    queryFn: async () => unwrap(await api.GET('/teams')),
   });
   const users = useQuery({
     queryKey: ['users'],
@@ -102,6 +110,7 @@ export function DebtForm(props: {
             kind: v.kind,
             status: v.status,
             ownerId: v.ownerId || null,
+            teamId: v.teamId || null,
             effortEstimate: num(v.effortEstimate),
             interestEstimate: num(v.interestEstimate),
             acceptedReason: v.status === 'accepted' ? v.acceptedReason.trim() : null,
@@ -192,6 +201,17 @@ export function DebtForm(props: {
           {users.data?.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Team
+        <select value={v.teamId} onChange={(e) => set('teamId', e.target.value)}>
+          <option value="">– keins –</option>
+          {teams.data?.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
             </option>
           ))}
         </select>

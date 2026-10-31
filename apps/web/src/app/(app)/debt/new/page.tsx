@@ -25,6 +25,7 @@ export default function NewDebtPage() {
                 description: v.description,
                 kind: v.kind,
                 ownerId: v.ownerId,
+                teamId: v.teamId,
                 effortEstimate: v.effortEstimate,
                 interestEstimate: v.interestEstimate,
               },
