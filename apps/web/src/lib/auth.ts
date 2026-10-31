@@ -42,6 +42,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   session: { strategy: 'jwt' },
+  events: {
+    /** Ends the Keycloak (SSO) session too, otherwise "Anmelden" would log in again silently. */
+    async signOut(message) {
+      const refreshToken = 'token' in message ? message.token?.refreshToken : undefined;
+      if (!refreshToken) return;
+      await fetch(`${issuer}/protocol/openid-connect/logout`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: process.env.AUTH_KEYCLOAK_ID ?? '',
+          client_secret: process.env.AUTH_KEYCLOAK_SECRET ?? '',
+          refresh_token: refreshToken,
+        }),
+      }).catch(() => undefined);
+    },
+  },
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
