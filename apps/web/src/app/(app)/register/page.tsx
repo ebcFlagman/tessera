@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { kindLabels, statusLabels } from '@/components/debt/labels';
 import { SourceBadge } from '@/components/debt/SourceBadge';
+import { ExportButton } from '@/components/export/ExportButton';
 import { Empty, ErrorState, Loading } from '@/components/shell/states';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
@@ -18,10 +19,17 @@ export default function RegisterPage() {
   const [kind, setKind] = useState<Kind | ''>('');
   const [status, setStatus] = useState<Status | ''>('');
   const [productId, setProductId] = useState('');
+  const [teamId, setTeamId] = useState('');
   const [source, setSource] = useState<'' | 'manual' | 'sonarcloud' | 'gitlab'>('');
   const [sort, setSort] = useState<'-createdAt' | 'createdAt' | 'title' | 'status' | '-priority'>(
     '-createdAt',
   );
+
+  const teams = useQuery({
+    queryKey: ['teams'],
+    enabled: ready,
+    queryFn: async () => unwrap(await api.GET('/teams')),
+  });
 
   const products = useQuery({
     queryKey: ['products'],
@@ -30,7 +38,7 @@ export default function RegisterPage() {
   });
 
   const debts = useInfiniteQuery({
-    queryKey: ['debts', { q, kind, status, productId, source, sort }],
+    queryKey: ['debts', { q, kind, status, productId, teamId, source, sort }],
     enabled: ready,
     queryFn: async ({ pageParam }) =>
       unwrap(
@@ -41,6 +49,7 @@ export default function RegisterPage() {
               ...(kind ? { kind } : {}),
               ...(status ? { status } : {}),
               ...(productId ? { productId } : {}),
+              ...(teamId ? { teamId } : {}),
               ...(source ? { source } : {}),
               sort,
               ...(pageParam ? { cursor: pageParam } : {}),
@@ -59,9 +68,14 @@ export default function RegisterPage() {
     <section>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <h1 style={{ margin: 0 }}>Schuldenregister</h1>
-        <Link href="/debt/new" style={{ marginLeft: 'auto' }}>
-          Neue Schuld erfassen
-        </Link>
+        <span style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+          <ExportButton
+            kind="debts"
+            query={{ q, kind, status, productId, teamId, source }}
+            label="Als CSV exportieren"
+          />
+          <Link href="/debt/new">Neue Schuld erfassen</Link>
+        </span>
       </div>
 
       <form
@@ -101,6 +115,17 @@ export default function RegisterPage() {
             {products.data?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Team{' '}
+          <select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+            <option value="">alle</option>
+            {teams.data?.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
               </option>
             ))}
           </select>

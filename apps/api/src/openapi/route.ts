@@ -5,6 +5,7 @@ import { bearerToken, syncUser } from '../auth/verify-token';
 import { getDeps, type Deps } from '../lib/deps';
 import { logger } from '../lib/logger';
 import { registry, ErrorSchema } from './registry';
+import { z } from './zod';
 
 type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
@@ -18,7 +19,13 @@ interface RouteSpec<P extends ZodTypeAny, Q extends ZodTypeAny, B extends ZodTyp
   query?: Q;
   body?: B;
   /** Success status and body schema (undefined body = no content). */
-  success: { status: 200 | 201 | 202 | 204; schema?: ZodTypeAny; description: string };
+  success: {
+    status: 200 | 201 | 202 | 204;
+    schema?: ZodTypeAny;
+    description: string;
+    /** for non-JSON bodies (e.g. `text/csv`): the handler then returns a `Response` itself */
+    contentType?: string;
+  };
   /** Extra documented error statuses besides the standard 401/403/422. */
   errors?: (404 | 409)[];
 }
@@ -53,12 +60,17 @@ export function defineRoute<
   handler: (ctx: RouteContext<zt.infer<P>, zt.infer<Q>, zt.infer<B>>) => Promise<unknown>,
 ) {
   const responses: Record<string, unknown> = {
-    [spec.success.status]: spec.success.schema
+    [spec.success.status]: spec.success.contentType
       ? {
           description: spec.success.description,
-          content: { 'application/json': { schema: spec.success.schema } },
+          content: { [spec.success.contentType]: { schema: spec.success.schema ?? z.string() } },
         }
-      : { description: spec.success.description },
+      : spec.success.schema
+        ? {
+            description: spec.success.description,
+            content: { 'application/json': { schema: spec.success.schema } },
+          }
+        : { description: spec.success.description },
     401: errorResponse('Nicht angemeldet'),
     403: errorResponse('Keine Berechtigung'),
     422: errorResponse('Validierungsfehler'),
@@ -99,6 +111,7 @@ export function defineRoute<
       const body = spec.body ? spec.body.parse(await readJson(req)) : undefined;
 
       const result = await handler({ deps, db, user, params, query, body });
+      if (result instanceof Response) return result; // e.g. a file download
       if (spec.success.status === 204 || result === undefined) {
         return new Response(null, { status: spec.success.status });
       }

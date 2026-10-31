@@ -34,7 +34,7 @@ Konzeptionelles Modell (Prisma-Schema entsteht in der Umsetzung). Alle Tabellen 
 `integration_id`, `external_id`, `debt_id`, `fingerprint`, `url?`, `raw` (JSONB), `conflicts` (manuell gepflegte Felder, deren Quellwert abweicht), `first_seen_at`, `last_seen_at`, `gone_at?`. Eindeutig (integration_id, external_id). Mehrere Befunde können dieselbe Schuld speisen; der älteste liefert deren Quellfelder, und die Schuld gilt erst als behoben, wenn alle ihre Befunde verschwunden sind.
 
 ### MetricSnapshot
-`product_id`, `date`, `count_by_status/kind/priority_band` (JSON), `total_effort`.
+`date` (Tag, UTC), `product_id`, `team_id?`, `total`, `open_count`, `open_effort`, `open_interest`, `unestimated_open`, `count_by_status`, `count_by_kind`, `count_by_priority_band` (JSON). Eine Zeile je Tag und (Produkt, Team)-Partition; „kein Team“ ist eine eigene Partition (Unique-Index über `date, product_id, COALESCE(team_id, '')`). Offen heißt: Status offen, geplant oder in Bearbeitung; archivierte Schulden zählen nicht.
 
 ### AuditEntry
 `actor_id`, `action`, `target_type`, `target_id`, `details` (JSON ohne Geheimnisse), `at`. Nur anfügen.

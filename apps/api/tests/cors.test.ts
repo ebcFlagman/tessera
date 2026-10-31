@@ -8,6 +8,7 @@ describe('cors', () => {
     const ok = corsHeaders('http://localhost:3000', allowed);
     expect(ok['Access-Control-Allow-Origin']).toBe('http://localhost:3000');
     expect(ok['Access-Control-Allow-Headers']).toContain('Authorization');
+    expect(ok['Access-Control-Expose-Headers']).toBe('Content-Disposition');
     const bad = corsHeaders('http://evil.example', allowed);
     expect(bad['Access-Control-Allow-Origin']).toBeUndefined();
     expect(Object.values(ok)).not.toContain('*');

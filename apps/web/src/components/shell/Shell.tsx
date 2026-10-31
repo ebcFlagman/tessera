@@ -11,6 +11,7 @@ export async function Shell({ children }: { children: React.ReactNode }) {
       <header style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24 }}>
         <strong>Tessera</strong>
         <nav style={{ display: 'flex', gap: 12 }} aria-label="Hauptnavigation">
+          <Link href="/dashboard">Dashboard</Link>
           <Link href="/register">Register</Link>
           <Link href="/priorities">Prioritäten</Link>
           <Link href="/integrations">Integrationen</Link>

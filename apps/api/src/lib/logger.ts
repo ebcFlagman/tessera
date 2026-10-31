@@ -2,6 +2,7 @@ const SENSITIVE = /password|secret|token|credential|authorization|api[-_]?key|co
 
 /** Replaces values of sensitive keys, recursively (constitution IV). */
 export function redact(value: unknown, depth = 0): unknown {
+  if (value instanceof Date) return value.toISOString();
   if (depth > 6 || value === null || typeof value !== 'object') return value;
   if (Array.isArray(value)) return value.map((v) => redact(v, depth + 1));
   return Object.fromEntries(

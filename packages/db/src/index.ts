@@ -11,3 +11,4 @@ export function getDb(): PrismaClient {
 }
 
 export * from './jobs';
+export * from './metrics';

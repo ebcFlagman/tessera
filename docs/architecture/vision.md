@@ -89,7 +89,7 @@ Alle Entscheidungen: [ADR-Index](adr/README.md). Qualitätsziele: [quality-goals
 | Bewertung, Priorisierung, Überschreiben, Modellversionen                          | umgesetzt                                                                                                   |
 | Anmeldung (Keycloak), generierter API-Client, CI-Prüfung                          | umgesetzt                                                                                                   |
 | Import aus SonarCloud/GitLab, Worker, Zugangsdaten, Zusammenführen von Duplikaten | umgesetzt (geprüft mit Fixtures und einer lokalen Attrappe der Quelle, noch nicht gegen die echten Dienste) |
-| Dashboard, Zeitverlauf, Export                                                    | geplant                                                                                                     |
+| Dashboard, Zeitverlauf, CSV-Export                                                | umgesetzt                                                                                                   |
 | Teamverwaltung, Rollenverwaltung, Auditansicht                                    | geplant                                                                                                     |
 
 Die Aufgabenliste mit dem genauen Fortschritt steht in

@@ -288,6 +288,7 @@ export interface paths {
                     status?: components["schemas"]["DebtStatus"];
                     productId?: string;
                     ownerId?: string;
+                    teamId?: string;
                     source?: "manual" | "sonarcloud" | "gitlab";
                     includeArchived?: "true" | "false";
                     sort?: "createdAt" | "-createdAt" | "title" | "-title" | "status" | "-status" | "priority" | "-priority";
@@ -1740,6 +1741,277 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Kennzahlen und Zeitverlauf (Filter: Produkt, Team, Zeitraum) */
+        get: {
+            parameters: {
+                query?: {
+                    productId?: string;
+                    teamId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Kennzahlen und Verlauf */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Dashboard"];
+                    };
+                };
+                /** @description Nicht angemeldet */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Keine Berechtigung */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Validierungsfehler */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Teams (für Filter) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Teams */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Team"][];
+                    };
+                };
+                /** @description Nicht angemeldet */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Keine Berechtigung */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Validierungsfehler */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exports/debts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Register als CSV (gleiche Filter wie das Register) */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    kind?: components["schemas"]["DebtKind"];
+                    status?: components["schemas"]["DebtStatus"];
+                    productId?: string;
+                    ownerId?: string;
+                    teamId?: string;
+                    source?: "manual" | "sonarcloud" | "gitlab";
+                    includeArchived?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description CSV-Datei */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/csv": string;
+                    };
+                };
+                /** @description Nicht angemeldet */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Keine Berechtigung */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Validierungsfehler */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exports/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard-Kennzahlen und Verlauf als CSV */
+        get: {
+            parameters: {
+                query?: {
+                    productId?: string;
+                    teamId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description CSV-Datei */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/csv": string;
+                    };
+                };
+                /** @description Nicht angemeldet */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Keine Berechtigung */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Validierungsfehler */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2003,6 +2275,59 @@ export interface components {
         TestResult: {
             ok: boolean;
             message: string;
+        };
+        Metrics: {
+            /** @description Alle nicht archivierten Schulden im Filter */
+            total: number;
+            /** @description Schulden, die noch zu tilgen sind (offen, geplant, in Bearbeitung) */
+            openCount: number;
+            /** @description Summe der Aufwandsschätzungen offener Schulden (Personentage) */
+            openEffort: number;
+            /** @description Summe der Folgekosten offener Schulden (Personentage/Monat) */
+            openInterest: number;
+            /** @description Offene Schulden ohne Aufwandsschätzung (der offene Aufwand ist eine Untergrenze) */
+            unestimatedOpen: number;
+            byStatus: {
+                open: number;
+                planned: number;
+                in_progress: number;
+                repaid: number;
+                accepted: number;
+            };
+            byKind: {
+                architectural: number;
+                technical: number;
+            };
+            byPriorityBand: {
+                /** @description gültige Priorität ab 70 */
+                high: number;
+                /** @description ab 40 */
+                medium: number;
+                /** @description unter 40 */
+                low: number;
+                unassessed: number;
+            };
+        };
+        HistoryPoint: components["schemas"]["Metrics"] & {
+            /** @description YYYY-MM-DD */
+            date: string;
+        };
+        Dashboard: {
+            filters: {
+                productId: string | null;
+                teamId: string | null;
+                from: string;
+                to: string;
+            };
+            /** Format: date-time */
+            generatedAt: string;
+            current: components["schemas"]["Metrics"];
+            history: components["schemas"]["HistoryPoint"][];
+            lastSnapshotDate: string | null;
+        };
+        Team: {
+            id: string;
+            name: string;
         };
     };
     responses: never;

@@ -1,4 +1,5 @@
 import {
+  SNAPSHOT_QUEUE,
   SYNC_QUEUE,
   TICK_QUEUE,
   type JobQueue,
@@ -6,6 +7,7 @@ import {
   type SyncJob,
 } from '@tessera/db';
 import { log } from './log';
+import { ensureTodaySnapshot, takeSnapshot } from './jobs/metric-snapshot';
 import { runSync, type SyncDeps } from './jobs/sync-integration';
 
 /** After this many postponements because of rate limits a run is given up. */
@@ -103,5 +105,12 @@ export async function startWorker(deps: SyncDeps, queue: JobQueue) {
     const r = await tick(deps.db, queue);
     if (r.enqueued || r.failedStale) log.info('tick', r);
   });
+  // daily figures for the dashboard history (02:15 UTC), plus one at start-up if today has none yet
+  await queue.boss.schedule(SNAPSHOT_QUEUE, '15 2 * * *', {}, { tz: 'UTC' });
+  await queue.boss.work(SNAPSHOT_QUEUE, async () => {
+    log.info('snapshot', { ...(await takeSnapshot(deps.db)) });
+  });
+  const initial = await ensureTodaySnapshot(deps.db);
+  if (initial) log.info('initial snapshot', { ...initial });
   log.info('worker ready');
 }

@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConnectorError } from '@tessera/connectors';
-import { createJobQueue, SYNC_QUEUE, type SyncJob } from '@tessera/db';
+import { createJobQueue, SNAPSHOT_QUEUE, SYNC_QUEUE, type SyncJob } from '@tessera/db';
 import { MAX_RATE_LIMIT_ATTEMPTS, handleSyncJob, startWorker, tick } from '../src/scheduler';
 import {
   FakeSource,
@@ -108,6 +108,30 @@ describe('rate limits', () => {
     expect(await db.syncRun.findUnique({ where: { id: run.id } })).toMatchObject({
       state: 'failed',
     });
+  });
+});
+
+describe('snapshot job through the real queue', () => {
+  it('start-up creates the snapshot of today and a job sent to the snapshot queue writes one', async () => {
+    const { product } = await setupIntegration(db);
+    await db.debtItem.create({ data: { productId: product.id, title: 'x', kind: 'technical' } });
+    await db.$executeRawUnsafe('TRUNCATE TABLE metric_snapshot');
+
+    const real = await createJobQueue(process.env.DATABASE_URL!, 3);
+    try {
+      await startWorker(makeDeps(db, new FakeSource()), real);
+      expect(await db.metricSnapshot.count()).toBeGreaterThan(0); // written at start-up
+      await db.$executeRawUnsafe('TRUNCATE TABLE metric_snapshot');
+      await real.boss.send(SNAPSHOT_QUEUE, {});
+      await vi.waitFor(async () => expect(await db.metricSnapshot.count()).toBeGreaterThan(0), {
+        timeout: 20_000,
+        interval: 250,
+      });
+    } finally {
+      await real.boss.offWork(SNAPSHOT_QUEUE).catch(() => undefined);
+      await real.boss.offWork(SYNC_QUEUE).catch(() => undefined);
+      await real.stop();
+    }
   });
 });
 

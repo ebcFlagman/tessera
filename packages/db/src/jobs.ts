@@ -2,6 +2,7 @@ import PgBoss from 'pg-boss';
 
 export const SYNC_QUEUE = 'tessera-sync';
 export const TICK_QUEUE = 'tessera-tick';
+export const SNAPSHOT_QUEUE = 'tessera-snapshot';
 
 export interface SyncJob {
   syncRunId: string;
@@ -22,7 +23,7 @@ export async function createJobQueue(connectionString: string, max = 4): Promise
     console.error(JSON.stringify({ level: 'error', message: 'pg-boss', error: err.message })),
   );
   await boss.start();
-  for (const name of [SYNC_QUEUE, TICK_QUEUE]) {
+  for (const name of [SYNC_QUEUE, TICK_QUEUE, SNAPSHOT_QUEUE]) {
     await boss.createQueue(name).catch(() => undefined); // already exists
   }
   return {

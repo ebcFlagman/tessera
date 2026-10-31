@@ -53,7 +53,7 @@ Prüfen:
 pnpm lint && pnpm typecheck && pnpm test   # Unit-, Integrations-, Vertragstests (eingebettete PostgreSQL)
 pnpm check:generated                       # OpenAPI-Spezifikation und Client aktuell?
 pnpm check:docs                            # Links in der Dokumentation gültig?
-pnpm test:e2e                              # Playwright; Stack und `pnpm dev` müssen laufen
+pnpm test:e2e                              # Playwright; Stack und `pnpm dev` (inkl. Worker) müssen laufen
 ```
 
 Nach jeder API-Änderung: `pnpm openapi:generate && pnpm api-types:generate` und beides einchecken.

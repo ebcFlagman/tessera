@@ -15,6 +15,8 @@ export function corsHeaders(origin: string | null, allowed: string[]): Record<st
     headers['Access-Control-Allow-Origin'] = origin;
     headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,PATCH,DELETE,OPTIONS';
     headers['Access-Control-Allow-Headers'] = 'Authorization,Content-Type';
+    // lets the browser read the file name of CSV downloads
+    headers['Access-Control-Expose-Headers'] = 'Content-Disposition';
     headers['Access-Control-Max-Age'] = '600';
   }
   return headers;

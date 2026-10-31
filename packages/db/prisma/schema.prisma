@@ -44,15 +44,16 @@ enum SyncState {
 }
 
 model Product {
-  id           String        @id @default(cuid())
-  name         String        @unique
+  id           String           @id @default(cuid())
+  name         String           @unique
   description  String?
-  archivedAt   DateTime?     @map("archived_at")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  archivedAt   DateTime?        @map("archived_at")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
   memberships  Membership[]
   debts        DebtItem[]
   integrations Integration[]
+  snapshots    MetricSnapshot[]
 
   @@map("product")
 }
@@ -287,4 +288,29 @@ model Finding {
   @@unique([integrationId, externalId])
   @@index([debtId])
   @@map("finding")
+}
+
+/// Daily figures per (product, team) partition; the dashboard sums partitions for its filters.
+/// A team of null stands for debts without a team. Unique per day and partition (index in the migration).
+model MetricSnapshot {
+  id                  String   @id @default(cuid())
+  date                DateTime @db.Date
+  productId           String   @map("product_id")
+  teamId              String?  @map("team_id")
+  total               Int
+  openCount           Int      @map("open_count")
+  /// person-days of debts still to repay
+  openEffort          Float    @map("open_effort")
+  openInterest        Float    @map("open_interest")
+  unestimatedOpen     Int      @map("unestimated_open")
+  countByStatus       Json     @map("count_by_status")
+  countByKind         Json     @map("count_by_kind")
+  countByPriorityBand Json     @map("count_by_priority_band")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@index([productId, date])
+  @@map("metric_snapshot")
 }

@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
-    "pg-boss": "^10.4.2"
+    "pg-boss": "^10.4.2",
+    "@tessera/domain": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

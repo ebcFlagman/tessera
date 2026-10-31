@@ -105,6 +105,7 @@ export const DebtListQuery = z.object({
   status: StatusSchema.optional(),
   productId: z.string().optional(),
   ownerId: z.string().optional(),
+  teamId: z.string().optional(),
   source: z.enum(['manual', 'sonarcloud', 'gitlab']).optional(),
   includeArchived: z.enum(['true', 'false']).default('false'),
   sort: z
@@ -308,3 +309,75 @@ export const MergeInputSchema = z
     duplicateId: z.string().min(1).describe('Die Schuld, die in diese zusammengeführt wird'),
   })
   .openapi('MergeInput');
+
+const Count = z.number().int();
+export const MetricsSchema = z
+  .object({
+    total: Count.describe('Alle nicht archivierten Schulden im Filter'),
+    openCount: Count.describe('Schulden, die noch zu tilgen sind (offen, geplant, in Bearbeitung)'),
+    openEffort: z
+      .number()
+      .describe('Summe der Aufwandsschätzungen offener Schulden (Personentage)'),
+    openInterest: z
+      .number()
+      .describe('Summe der Folgekosten offener Schulden (Personentage/Monat)'),
+    unestimatedOpen: Count.describe(
+      'Offene Schulden ohne Aufwandsschätzung (der offene Aufwand ist eine Untergrenze)',
+    ),
+    byStatus: z.object({
+      open: Count,
+      planned: Count,
+      in_progress: Count,
+      repaid: Count,
+      accepted: Count,
+    }),
+    byKind: z.object({ architectural: Count, technical: Count }),
+    byPriorityBand: z.object({
+      high: Count.describe('gültige Priorität ab 70'),
+      medium: Count.describe('ab 40'),
+      low: Count.describe('unter 40'),
+      unassessed: Count,
+    }),
+  })
+  .openapi('Metrics');
+
+export const HistoryPointSchema = MetricsSchema.extend({
+  date: z.string().describe('YYYY-MM-DD'),
+}).openapi('HistoryPoint');
+
+const Day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format JJJJ-MM-TT');
+
+export const DashboardQuerySchema = z.object({
+  productId: z.string().optional(),
+  teamId: z.string().optional(),
+  from: Day.optional(),
+  to: Day.optional(),
+});
+
+export const DashboardSchema = z
+  .object({
+    filters: z.object({
+      productId: z.string().nullable(),
+      teamId: z.string().nullable(),
+      from: z.string(),
+      to: z.string(),
+    }),
+    generatedAt: z.string().datetime(),
+    current: MetricsSchema,
+    history: z.array(HistoryPointSchema),
+    lastSnapshotDate: z.string().nullable(),
+  })
+  .openapi('Dashboard');
+
+export const TeamSchema = z.object({ id: z.string(), name: z.string() }).openapi('Team');
+
+export const ExportDebtsQuery = DebtListQuery.pick({
+  q: true,
+  kind: true,
+  status: true,
+  productId: true,
+  ownerId: true,
+  teamId: true,
+  source: true,
+  includeArchived: true,
+});

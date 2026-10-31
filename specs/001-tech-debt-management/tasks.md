@@ -187,18 +187,18 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 **Independent Test**: Kennzahlen stimmen mit dem Register überein; Export enthält die angezeigten Daten (quickstart Szenario 4).
 
-- [ ] T085 [P] [US4] Integrationstest: Dashboard-Kennzahlen stimmen zu 100 % mit gefiltertem Register überein (SC-006) in `apps/api/tests/integration/dashboard.test.ts`
-- [ ] T086 [P] [US4] Vertragstests `/dashboard`, `/exports/debts` in `apps/api/tests/contract/dashboard.test.ts`
-- [ ] T087 [P] [US4] Performance-Test: Register/Dashboard bei 10.000 Schulden < 3 s (SC-005) in `apps/api/tests/performance/register-dashboard.test.ts`
-- [ ] T088 [P] [US4] Prisma-Modell `MetricSnapshot` (`count_by_status/kind/priority_band` JSON, `total_effort`) in `packages/db/prisma/schema.prisma`; Migration
-- [ ] T089 [US4] Täglicher Snapshot-Job in `apps/worker/src/jobs/metric-snapshot.ts`
-- [ ] T090 [US4] Dashboard-Service (Live-Kennzahlen aus Register, Verlauf aus Snapshots, Filter Produkt/Team/Zeitraum) in `apps/api/src/services/dashboard.ts`
-- [ ] T091 [US4] CSV-Export in `apps/api/src/services/export.ts`
-- [ ] T092 [US4] Routen `GET /api/v1/dashboard`, `GET /api/v1/exports/debts` in `apps/api/src/app/api/v1/dashboard/`, `.../exports/debts/`
-- [ ] T093 [US4] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
-- [ ] T094 [P] [US4] Frontend: Dashboard mit Kennzahlen und Zeitverlauf (Recharts) in `apps/web/src/app/dashboard/page.tsx`
-- [ ] T095 [P] [US4] Frontend: Export-Schaltfläche in Register und Dashboard in `apps/web/src/components/export/ExportButton.tsx`
-- [ ] T096 [P] [US4] E2E: Dashboard vs. Register, Export in `apps/web/tests/e2e/dashboard.spec.ts`
+- [x] T085 [P] [US4] Integrationstest: Dashboard-Kennzahlen stimmen zu 100 % mit gefiltertem Register überein (SC-006) in `apps/api/tests/integration/dashboard.test.ts`
+- [x] T086 [P] [US4] Vertragstests `/dashboard`, `/exports/debts` in `apps/api/tests/contract/dashboard.test.ts`
+- [x] T087 [P] [US4] Performance-Test: Register/Dashboard bei 10.000 Schulden < 3 s (SC-005) in `apps/api/tests/performance/register-dashboard.test.ts`
+- [x] T088 [P] [US4] Prisma-Modell `MetricSnapshot` (`count_by_status/kind/priority_band` JSON, `total_effort`) in `packages/db/prisma/schema.prisma`; Migration
+- [x] T089 [US4] Täglicher Snapshot-Job in `apps/worker/src/jobs/metric-snapshot.ts`
+- [x] T090 [US4] Dashboard-Service (Live-Kennzahlen aus Register, Verlauf aus Snapshots, Filter Produkt/Team/Zeitraum) in `apps/api/src/services/dashboard.ts`
+- [x] T091 [US4] CSV-Export in `apps/api/src/services/export.ts`
+- [x] T092 [US4] Routen `GET /api/v1/dashboard`, `GET /api/v1/exports/debts` in `apps/api/src/app/api/v1/dashboard/`, `.../exports/debts/`
+- [x] T093 [US4] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
+- [x] T094 [P] [US4] Frontend: Dashboard mit Kennzahlen und Zeitverlauf (Recharts) in `apps/web/src/app/dashboard/page.tsx`
+- [x] T095 [P] [US4] Frontend: Export-Schaltfläche in Register und Dashboard in `apps/web/src/components/export/ExportButton.tsx`
+- [x] T096 [P] [US4] E2E: Dashboard vs. Register, Export in `apps/web/tests/e2e/dashboard.spec.ts`
 
 **Checkpoint**: Dashboard und Export liefern konsistente Zahlen.
 
