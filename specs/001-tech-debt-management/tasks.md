@@ -26,14 +26,14 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 ## Phase 1: Setup
 
-- [ ] T001 pnpm-Monorepo anlegen: `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json` (strict), Verzeichnisse `apps/{web,api,worker}` und `packages/{db,domain,connectors,api-types}`
-- [ ] T002 [P] ESLint, Prettier und Commit-Hooks konfigurieren in `eslint.config.mjs`, `.prettierrc`
-- [ ] T003 [P] Next.js-App (App Router, React 19) initialisieren in `apps/web/`
-- [ ] T004 [P] Next.js-App (nur Route Handlers, Basispfad `/api/v1`) initialisieren in `apps/api/`
-- [ ] T005 [P] Worker-Paket (Node 22, TypeScript) initialisieren in `apps/worker/package.json`
-- [ ] T006 [P] Vitest-Konfiguration inkl. Testcontainers (PostgreSQL) in `vitest.workspace.ts` und Playwright in `apps/web/playwright.config.ts`
-- [ ] T007 [P] Entwicklungsumgebung: `deploy/docker-compose.dev.yml` (PostgreSQL 16, Keycloak mit Testrealm und Testbenutzern admin, editor und einen Benutzer ohne Rolle) und `deploy/.env.example`
-- [ ] T008 [P] CI-Pipeline (Lint, Typecheck, Test, Prüfung auf veraltete OpenAPI-Spezifikation und generierten Client) in `.github/workflows/ci.yml`
+- [x] T001 pnpm-Monorepo anlegen: `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json` (strict), Verzeichnisse `apps/{web,api,worker}` und `packages/{db,domain,connectors,api-types}`
+- [x] T002 [P] ESLint und Prettier konfigurieren (Commit-Hooks bewusst nicht eingerichtet; die CI prüft Format und Lint) in `eslint.config.mjs`, `.prettierrc`
+- [x] T003 [P] Next.js-App (App Router, React 19) initialisieren in `apps/web/`
+- [x] T004 [P] Next.js-App (nur Route Handlers, Basispfad `/api/v1`) initialisieren in `apps/api/`
+- [x] T005 [P] Worker-Paket (Node 22, TypeScript) initialisieren in `apps/worker/package.json`
+- [x] T006 [P] Vitest-Konfiguration mit eingebetteter PostgreSQL für Integrationstests (Paket `embedded-postgres` statt Testcontainers, kein Docker nötig) in `vitest.config.ts`, `apps/api/tests/helpers/global-setup.ts` und Playwright in `apps/web/playwright.config.ts`
+- [x] T007 [P] Entwicklungsumgebung: `deploy/docker-compose.dev.yml` (PostgreSQL 16, Keycloak mit Testrealm und Testbenutzern admin, editor und einen Benutzer ohne Rolle) und `deploy/.env.example`
+- [x] T008 [P] CI-Pipeline (Lint, Typecheck, Test, Prüfung auf veraltete OpenAPI-Spezifikation und generierten Client) in `.github/workflows/ci.yml`
 
 ---
 
@@ -41,21 +41,21 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 **⚠️ CRITICAL**: Keine User Story darf vor Abschluss dieser Phase beginnen.
 
-- [ ] T009 Prisma-Schema mit Basistabellen `Product`, `User`, `Team`, `Membership` (role ∈ {admin, editor}, eindeutig je (user, product)), `AuditEntry` (nur anfügend) in `packages/db/prisma/schema.prisma`; erste Migration
-- [ ] T010 Prisma-Client-Paket und Seed (Testprodukte, Testbenutzer) in `packages/db/src/index.ts`, `packages/db/prisma/seed.ts`
-- [ ] T011 [P] Gemeinsame Fehler- und Ergebnis-Typen sowie Zod-Basisschemas (Fehlerformat `{code, message, details?}`) in `packages/domain/src/errors.ts`
-- [ ] T012 JWT-Prüfung gegen Keycloak-JWKS (`jose`), Benutzer-Spiegelung aus Token (`subject`, `name`, `email`) in `apps/api/src/auth/verify-token.ts`
-- [ ] T013 Autorisierung: Lesen für alle angemeldeten Benutzer; Schreiben nur mit Rolle editor/admin des Produkts, Admin-Aktionen nur admin in `apps/api/src/auth/authorize.ts`
-- [ ] T014 Audit-Service (schreibt `AuditEntry`, Details ohne Geheimnisse, Redaction) in `apps/api/src/services/audit.ts`
-- [ ] T015 Code-First-API-Grundgerüst: Route-Wrapper, der Zod-Schemas registriert und die OpenAPI-Spezifikation aus dem Backend-Code erzeugt (z. B. zod-to-openapi) in `apps/api/src/openapi/registry.ts`; Skript `pnpm openapi:generate` schreibt die eingecheckte Spezifikation nach `apps/api/openapi.generated.json`
-- [ ] T016 Client- und Typ-Generierung aus `apps/api/openapi.generated.json` nach `packages/api-types/` (z. B. openapi-typescript) mit Skript `pnpm api-types:generate`; handgeschriebene API-Aufrufe im Frontend per ESLint-Regel verbieten in `eslint.config.mjs`
-- [ ] T017 Vertragstest-Rahmen: Backend-Antworten gegen die erzeugte Spezifikation prüfen in `apps/api/tests/contract/setup.ts`
-- [ ] T018 [P] Strukturiertes Logging mit Redaction von Geheimnissen in `apps/api/src/lib/logger.ts`
-- [ ] T019 [P] Frontend: Auth.js mit Keycloak-Provider (Authorization Code + PKCE), Sitzungsverwaltung und Token-Weitergabe in `apps/web/src/lib/auth.ts`
-- [ ] T020 [P] Frontend: App-Layout, Navigation, Fehler- und Ladezustände in `apps/web/src/app/layout.tsx`, `apps/web/src/components/shell/`
-- [ ] T021 [P] Frontend: API-Client-Wrapper, der den generierten Client aus `packages/api-types` mit Token und TanStack Query verbindet in `apps/web/src/lib/api.ts`
-- [ ] T022 Test: Autorisierungsregeln (Lesen ohne Rolle erlaubt, Schreiben ohne Rolle verweigert) in `apps/api/tests/integration/authorize.test.ts`
-- [ ] T023 Test: CI-Schritt schlägt fehl bei veralteter Spezifikation bzw. veraltetem generiertem Client (Skript `scripts/check-generated.sh`)
+- [x] T009 Prisma-Schema mit Basistabellen `Product`, `User`, `Team`, `Membership` (role ∈ {admin, editor}, eindeutig je (user, product)), `AuditEntry` (nur anfügend) in `packages/db/prisma/schema.prisma`; erste Migration
+- [x] T010 Prisma-Client-Paket und Seed (Testprodukte, Testbenutzer) in `packages/db/src/index.ts`, `packages/db/prisma/seed.ts`
+- [x] T011 [P] Gemeinsame Fehler- und Ergebnis-Typen sowie Zod-Basisschemas (Fehlerformat `{code, message, details?}`) in `packages/domain/src/errors.ts`
+- [x] T012 JWT-Prüfung gegen Keycloak-JWKS (`jose`), Benutzer-Spiegelung aus Token (`subject`, `name`, `email`) in `apps/api/src/auth/verify-token.ts`
+- [x] T013 Autorisierung: Lesen für alle angemeldeten Benutzer; Schreiben nur mit Rolle editor/admin des Produkts, Admin-Aktionen nur admin in `apps/api/src/auth/authorize.ts`
+- [x] T014 Audit-Service (schreibt `AuditEntry`, Details ohne Geheimnisse, Redaction) in `apps/api/src/services/audit.ts`
+- [x] T015 Code-First-API-Grundgerüst: Route-Wrapper, der Zod-Schemas registriert und die OpenAPI-Spezifikation aus dem Backend-Code erzeugt (z. B. zod-to-openapi) in `apps/api/src/openapi/registry.ts`; Skript `pnpm openapi:generate` schreibt die eingecheckte Spezifikation nach `apps/api/openapi.generated.json`
+- [x] T016 Client- und Typ-Generierung aus `apps/api/openapi.generated.json` nach `packages/api-types/` (z. B. openapi-typescript) mit Skript `pnpm api-types:generate`; handgeschriebene API-Aufrufe im Frontend per ESLint-Regel verbieten in `eslint.config.mjs`
+- [x] T017 Vertragstest-Rahmen: Backend-Antworten gegen die erzeugte Spezifikation prüfen in `apps/api/tests/contract/setup.ts`
+- [x] T018 [P] Strukturiertes Logging mit Redaction von Geheimnissen in `apps/api/src/lib/logger.ts`
+- [x] T019 [P] Frontend: Auth.js mit Keycloak-Provider (Authorization Code + PKCE), Sitzungsverwaltung und Token-Weitergabe in `apps/web/src/lib/auth.ts`
+- [x] T020 [P] Frontend: App-Layout, Navigation, Fehler- und Ladezustände in `apps/web/src/app/layout.tsx`, `apps/web/src/components/shell/`
+- [x] T021 [P] Frontend: API-Client-Wrapper, der den generierten Client aus `packages/api-types` mit Token und TanStack Query verbindet in `apps/web/src/lib/api.ts`
+- [x] T022 Test: Autorisierungsregeln (Lesen ohne Rolle erlaubt, Schreiben ohne Rolle verweigert) in `apps/api/tests/integration/authorize.test.ts`
+- [x] T023 Test: CI-Schritt schlägt fehl bei veralteter Spezifikation bzw. veraltetem generiertem Client (Skript `scripts/check-generated.sh`)
 
 **Checkpoint**: Anmeldung, Autorisierung, Audit, Code-First-OpenAPI und Client-Generierung stehen.
 
@@ -69,26 +69,26 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 ### Tests für US1
 
-- [ ] T024 [P] [US1] Unit-Tests der Zustandsübergänge (open → planned → in_progress → repaid; open/planned → accepted; repaid → open; `accepted` erfordert `accepted_reason`) in `packages/domain/tests/debt-status.test.ts`
-- [ ] T025 [P] [US1] Vertragstest `GET/POST /debts`, `GET/PATCH /debts/{id}` in `apps/api/tests/contract/debts.test.ts`
-- [ ] T026 [P] [US1] Integrationstest Register: Filter (Art, Status, Produkt, Verantwortlicher, Priorität, Quelle), Suche, Sortierung, Cursor-Paginierung in `apps/api/tests/integration/debt-register.test.ts`
+- [x] T024 [P] [US1] Unit-Tests der Zustandsübergänge (open → planned → in_progress → repaid; open/planned → accepted; repaid → open; `accepted` erfordert `accepted_reason`) in `packages/domain/tests/debt-status.test.ts`
+- [x] T025 [P] [US1] Vertragstest `GET/POST /debts`, `GET/PATCH /debts/{id}` in `apps/api/tests/contract/debts.test.ts`
+- [x] T026 [P] [US1] Integrationstest Register: Filter (Art, Status, Produkt, Verantwortlicher; die Filter Priorität und Quelle folgen mit US2 bzw. US3), Suche, Sortierung, Cursor-Paginierung in `apps/api/tests/integration/debt-register.test.ts`
 - [ ] T027 [P] [US1] E2E: Schuld mit Aufwand und Folgekosten anlegen, Verantwortlichen auswählen, filtern, Status ändern, Verlauf prüfen in `apps/web/tests/e2e/register.spec.ts`
-- [ ] T028 [P] [US1] Vertragstests `GET /users`, `PATCH /products/{id}` (Umbenennen, Archivieren inkl. Folgewirkung auf Schulden) in `apps/api/tests/contract/products-users.test.ts`
+- [x] T028 [P] [US1] Vertragstests `GET /users`, `PATCH /products/{id}` (Umbenennen, Archivieren inkl. Folgewirkung auf Schulden) in `apps/api/tests/contract/products-users.test.ts`
 
 ### Implementation für US1
 
-- [ ] T029 [P] [US1] Prisma-Modelle `DebtItem` (Felder laut data-model.md: `title` 1–200 Zeichen, `kind` ∈ {architectural, technical}, `status` ∈ {open, planned, in_progress, repaid, accepted}, `effort_estimate` und `interest_estimate` ≥ 0, `accepted_reason?`, `review_date?`, `archived_at`, `field_origin` JSON) und `DebtEvent` (`changes` JSON vorher/nachher) in `packages/db/prisma/schema.prisma`; Migration; Indizes (product_id, status), (kind), (owner_id), Volltext auf title/description
-- [ ] T030 [P] [US1] Zustandsübergangs-Logik und Validierung (reine Funktionen) in `packages/domain/src/debt-status.ts`
-- [ ] T031 [US1] Debt-Service: anlegen, ändern, archivieren, Ereignis in `DebtEvent` schreiben, Audit-Eintrag in `apps/api/src/services/debts.ts`
-- [ ] T032 [US1] Register-Abfrage (Suche, Filter, Sortierung, Cursor) in `apps/api/src/services/debt-query.ts`
-- [ ] T033 [US1] Routen `GET/POST /api/v1/debts`, `GET/PATCH /api/v1/debts/{id}` mit Zod-Schemas (Fehler 403/404/422) in `apps/api/src/app/api/v1/debts/`
-- [ ] T034 [US1] Routen `GET/POST /api/v1/products` (Anlegen nur admin) in `apps/api/src/app/api/v1/products/route.ts`
-- [ ] T035 [US1] Product-Service und Route `PATCH /api/v1/products/{id}` (Umbenennen, Archivieren; zugehörige Schulden werden archiviert statt gelöscht; nur admin) in `apps/api/src/services/products.ts`, `apps/api/src/app/api/v1/products/[id]/route.ts`
-- [ ] T036 [US1] Route `GET /api/v1/users` (Suche, für die Auswahl des Verantwortlichen) in `apps/api/src/app/api/v1/users/route.ts`
-- [ ] T037 [US1] OpenAPI-Spezifikation und Client neu generieren (`pnpm openapi:generate && pnpm api-types:generate`) und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
-- [ ] T038 [P] [US1] Frontend: Registerliste mit Filtern, Suche, Sortierung in `apps/web/src/app/register/page.tsx`
-- [ ] T039 [P] [US1] Frontend: Formular „Schuld erfassen/bearbeiten“ (Validierung, Aufwandsschätzung und Folgekosten ≥ 0, Auswahl des Verantwortlichen, „akzeptiert“ nur mit Begründung) in `apps/web/src/components/debt/DebtForm.tsx`
-- [ ] T040 [US1] Frontend: Detailseite mit Verlauf in `apps/web/src/app/debt/[id]/page.tsx`
+- [x] T029 [P] [US1] Prisma-Modelle `DebtItem` (Felder laut data-model.md: `title` 1–200 Zeichen, `kind` ∈ {architectural, technical}, `status` ∈ {open, planned, in_progress, repaid, accepted}, `effort_estimate` und `interest_estimate` ≥ 0, `accepted_reason?`, `review_date?`, `archived_at`, `field_origin` JSON) und `DebtEvent` (`changes` JSON vorher/nachher) in `packages/db/prisma/schema.prisma`; Migration; Indizes (product_id, status), (kind), (owner_id), Volltext auf title/description
+- [x] T030 [P] [US1] Zustandsübergangs-Logik und Validierung (reine Funktionen) in `packages/domain/src/debt-status.ts`
+- [x] T031 [US1] Debt-Service: anlegen, ändern, archivieren, Ereignis in `DebtEvent` schreiben, Audit-Eintrag in `apps/api/src/services/debts.ts`
+- [x] T032 [US1] Register-Abfrage (Suche, Filter, Sortierung, Cursor) in `apps/api/src/services/debt-query.ts`
+- [x] T033 [US1] Routen `GET/POST /api/v1/debts`, `GET/PATCH /api/v1/debts/{id}` mit Zod-Schemas (Fehler 403/404/422) in `apps/api/src/app/api/v1/debts/`
+- [x] T034 [US1] Routen `GET/POST /api/v1/products` (Anlegen nur admin) in `apps/api/src/app/api/v1/products/route.ts`
+- [x] T035 [US1] Product-Service und Route `PATCH /api/v1/products/{id}` (Umbenennen, Archivieren; zugehörige Schulden werden archiviert statt gelöscht; nur admin) in `apps/api/src/services/products.ts`, `apps/api/src/app/api/v1/products/[id]/route.ts`
+- [x] T036 [US1] Route `GET /api/v1/users` (Suche, für die Auswahl des Verantwortlichen) in `apps/api/src/app/api/v1/users/route.ts`
+- [x] T037 [US1] OpenAPI-Spezifikation und Client neu generieren (`pnpm openapi:generate && pnpm api-types:generate`) und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
+- [x] T038 [P] [US1] Frontend: Registerliste mit Filtern, Suche, Sortierung in `apps/web/src/app/register/page.tsx`
+- [x] T039 [P] [US1] Frontend: Formular „Schuld erfassen/bearbeiten“ (Validierung, Aufwandsschätzung und Folgekosten ≥ 0, Auswahl des Verantwortlichen, „akzeptiert“ nur mit Begründung) in `apps/web/src/components/debt/DebtForm.tsx`
+- [x] T040 [US1] Frontend: Detailseite mit Verlauf in `apps/web/src/app/debt/[id]/page.tsx`
 
 **Checkpoint**: US1 ist eigenständig lauffähig und testbar (MVP).
 

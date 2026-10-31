@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+coverage
+pnpm-lock.yaml
+packages/api-types/src/schema.d.ts
+apps/api/openapi.generated.json
+.claude
+.specify
+specs
+next-env.d.ts
+README.md

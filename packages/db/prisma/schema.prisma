@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  editor
+}
+
+enum DebtKind {
+  architectural
+  technical
+}
+
+enum DebtStatus {
+  open
+  planned
+  in_progress
+  repaid
+  accepted
+}
+
+model Product {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String?
+  archivedAt  DateTime?    @map("archived_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  memberships Membership[]
+  debts       DebtItem[]
+
+  @@map("product")
+}
+
+/// Mirror of the OIDC identity; `subject` is the Keycloak `sub` claim.
+model User {
+  id          String       @id @default(cuid())
+  subject     String       @unique
+  name        String
+  email       String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  memberships Membership[]
+  teams       TeamMember[]
+  ownedDebts  DebtItem[]   @relation("DebtOwner")
+
+  @@map("app_user")
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  members   TeamMember[]
+  debts     DebtItem[]
+
+  @@map("team")
+}
+
+model TeamMember {
+  teamId String @map("team_id")
+  userId String @map("user_id")
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@map("team_member")
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("membership")
+}
+
+/// Append-only. Details must never contain secrets.
+model AuditEntry {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  details    Json     @default("{}")
+  at         DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([at])
+  @@map("audit_entry")
+}
+
+model DebtItem {
+  id               String     @id @default(cuid())
+  productId        String     @map("product_id")
+  title            String     @db.VarChar(200)
+  description      String?
+  kind             DebtKind
+  status           DebtStatus @default(open)
+  ownerId          String?    @map("owner_id")
+  teamId           String?    @map("team_id")
+  /// person-days
+  effortEstimate   Float?     @map("effort_estimate")
+  /// person-days per month
+  interestEstimate Float?     @map("interest_estimate")
+  acceptedReason   String?    @map("accepted_reason")
+  reviewDate       DateTime?  @map("review_date")
+  archivedAt       DateTime?  @map("archived_at")
+  /// field name -> "source" | "manual" (import must not overwrite manual fields)
+  fieldOrigin      Json       @default("{}") @map("field_origin")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  product Product      @relation(fields: [productId], references: [id])
+  owner   User?        @relation("DebtOwner", fields: [ownerId], references: [id])
+  team    Team?        @relation(fields: [teamId], references: [id])
+  events  DebtEvent[]
+
+  @@index([productId, status])
+  @@index([kind])
+  @@index([ownerId])
+  @@map("debt_item")
+}
+
+/// History of a debt item: who changed what and when. actorId is null for imports.
+model DebtEvent {
+  id      String   @id @default(cuid())
+  debtId  String   @map("debt_id")
+  actorId String?  @map("actor_id")
+  type    String
+  changes Json     @default("{}")
+  at      DateTime @default(now())
+
+  debt DebtItem @relation(fields: [debtId], references: [id], onDelete: Cascade)
+
+  @@index([debtId, at])
+  @@map("debt_event")
+}

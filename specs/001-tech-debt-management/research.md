@@ -60,7 +60,7 @@ Alle technischen Unbekannten sind aufgelöst; es verbleibt kein `NEEDS CLARIFICA
 - **Rationale**: Stimmigkeit mit Register (SC-006) und schnelle Verlaufsabfragen.
 
 ### D11 – Tests
-- **Decision**: Vitest + Testcontainers (echte PostgreSQL), Vertragstests aus OpenAPI, Playwright-E2E für P1-Flows, Connector-Fixtures aus aufgezeichneten Antworten.
+- **Decision**: Vitest + eingebettete PostgreSQL (Paket `embedded-postgres`, echte Migrationen, kein Docker nötig; Testcontainers bleibt eine Option für die CI), Vertragstests aus OpenAPI, Playwright-E2E für P1-Flows, Connector-Fixtures aus aufgezeichneten Antworten.
 
 ### D12 – Architekturdokumentation
 - **Decision**: `docs/architecture/` mit Vision, Qualitätszielen, Kontext/Bausteinen (Diagramme als Mermaid), Integrationskonzept und ADRs (Format MADR) im Repo; Verweis aus README. Siehe FR-020/021.

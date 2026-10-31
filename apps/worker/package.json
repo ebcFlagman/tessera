@@ -1,0 +1,19 @@
+{
+  "name": "@tessera/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tessera/db": "workspace:*",
+    "@tessera/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5",
+    "@types/node": "^22.20.5"
+  }
+}
