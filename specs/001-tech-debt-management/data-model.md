@@ -25,13 +25,13 @@ Konzeptionelles Modell (Prisma-Schema entsteht in der Umsetzung). Alle Tabellen 
 `version`, `criteria` (JSON: Schlüssel, Name, Gewicht), `active`. Nur ein aktives Modell; Änderung erzeugt neue Version und löst Neuberechnung aus.
 
 ### Integration (Quelle)
-`product_id`, `type` ∈ {sonarcloud, gitlab}, `config` (JSON, z. B. Projektschlüssel), `credentials_encrypted`, `key_id`, `schedule` (Standard stündlich), `status` ∈ {ok, error, disabled}, `last_sync_at`, `last_error?`.
+`product_id`, `type` ∈ {sonarcloud, gitlab}, `name`, `config` (JSON ohne Geheimnisse, z. B. Projektschlüssel, `baseUrl`), `credentials_encrypted` (AES-256-GCM, Format `v1.<keyId>.<iv>.<tag>.<ciphertext>`; die Schlüssel-ID steckt im Wert), `schedule_minutes` (5–10080, Standard 60), `status` ∈ {ok, error, disabled}, `last_attempt_at` (Takt des Zeitplans), `last_sync_at` (letzter Erfolg), `last_error?`.
 
 ### SyncRun
-`integration_id`, `started_at`, `finished_at`, `state` ∈ {queued, running, succeeded, failed, partial}, `counts` (neu/aktualisiert/getilgt), `error?`.
+`integration_id`, `state` ∈ {queued, running, succeeded, failed}, `trigger` ∈ {manual, schedule}, `requested_by?`, `started_at?`, `finished_at?`, `counts` (created, updated, repaid, reopened, unchanged, total), `error?` (nie Zugangsdaten). Höchstens ein Lauf je Integration ist `queued` oder `running` (partieller Unique-Index).
 
 ### Finding (Importierter Befund)
-`integration_id`, `external_id`, `raw` (JSONB), `fingerprint`, `first_seen_at`, `last_seen_at`, `gone_at?`, `debt_id`. Eindeutig (integration_id, external_id).
+`integration_id`, `external_id`, `debt_id`, `fingerprint`, `url?`, `raw` (JSONB), `conflicts` (manuell gepflegte Felder, deren Quellwert abweicht), `first_seen_at`, `last_seen_at`, `gone_at?`. Eindeutig (integration_id, external_id). Mehrere Befunde können dieselbe Schuld speisen; der älteste liefert deren Quellfelder, und die Schuld gilt erst als behoben, wenn alle ihre Befunde verschwunden sind.
 
 ### MetricSnapshot
 `product_id`, `date`, `count_by_status/kind/priority_band` (JSON), `total_effort`.

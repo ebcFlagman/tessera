@@ -2,7 +2,7 @@
 
 - **Status:** Akzeptiert
 - **Datum:** 2026-10-31
-- **Umsetzungsstand:** geplant
+- **Umsetzungsstand:** umgesetzt
 
 ## Kontext
 
@@ -24,6 +24,8 @@ Der Kern bleibt unabhängig von Quellen; jede Quelle ist einzeln mit aufgezeichn
 
 - Neue Quellen brauchen Fixture-Tests, aber keine Kernänderung.
 - Polling statt Push, daher Aktualität im Stundenbereich.
+- Das Listing muss vollständig sein; ein Abruf ist immer ein voller Lauf (siehe [Integrationskonzept](../integration-concept.md)).
+- Quellen dürfen nur auf freigegebenen Hosts liegen (`SOURCE_ALLOWED_HOSTS`), um Abrufe interner Adressen zu verhindern.
 
 ## Referenzen
 

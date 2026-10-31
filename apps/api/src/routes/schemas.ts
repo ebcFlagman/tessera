@@ -4,6 +4,21 @@ import { z } from '../openapi/zod';
 export const KindSchema = z.enum(debtKinds).openapi('DebtKind');
 export const StatusSchema = z.enum(debtStatuses).openapi('DebtStatus');
 
+export const SourceRefSchema = z
+  .object({
+    type: z.enum(['sonarcloud', 'gitlab']),
+    integrationName: z.string(),
+    externalId: z.string(),
+    url: z.string().nullable(),
+    lastSeenAt: z.string().datetime(),
+    gone: z.boolean().describe('Die Quelle betrachtet die Schuld als erledigt'),
+    findingCount: z.number().int(),
+    conflicts: z
+      .array(z.object({ field: z.string(), sourceValue: z.unknown() }))
+      .describe('Manuell gepflegte Felder, deren Quellwert abweicht'),
+  })
+  .openapi('SourceRef');
+
 export const IdParams = z.object({ id: z.string().min(1) });
 
 export const DebtSchema = z
@@ -31,6 +46,7 @@ export const DebtSchema = z
       .number()
       .nullable()
       .openapi({ description: 'Überschreibung, sonst berechneter Wert' }),
+    source: SourceRefSchema.nullable().describe('Herkunft, wenn aus einer Quelle importiert'),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
@@ -89,6 +105,7 @@ export const DebtListQuery = z.object({
   status: StatusSchema.optional(),
   productId: z.string().optional(),
   ownerId: z.string().optional(),
+  source: z.enum(['manual', 'sonarcloud', 'gitlab']).optional(),
   includeArchived: z.enum(['true', 'false']).default('false'),
   sort: z
     .enum([
@@ -221,3 +238,73 @@ export const PriorityListSchema = z
     unassessedTotal: z.number().int(),
   })
   .openapi('PriorityList');
+
+export const IntegrationTypeSchema = z.enum(['sonarcloud', 'gitlab']).openapi('IntegrationType');
+
+export const SyncRunSchema = z
+  .object({
+    id: z.string(),
+    integrationId: z.string(),
+    state: z.enum(['queued', 'running', 'succeeded', 'failed']),
+    trigger: z.string(),
+    startedAt: z.string().datetime().nullable(),
+    finishedAt: z.string().datetime().nullable(),
+    counts: z.record(z.number()),
+    error: z.string().nullable(),
+    createdAt: z.string().datetime(),
+  })
+  .openapi('SyncRun');
+
+export const IntegrationSchema = z
+  .object({
+    id: z.string(),
+    productId: z.string(),
+    type: IntegrationTypeSchema,
+    name: z.string(),
+    config: z.record(z.unknown()),
+    scheduleMinutes: z.number().int(),
+    status: z.enum(['ok', 'error', 'disabled']),
+    hasCredentials: z.boolean().describe('Zugangsdaten werden nie zurückgegeben'),
+    lastAttemptAt: z.string().datetime().nullable(),
+    lastSyncAt: z.string().datetime().nullable(),
+    lastError: z.string().nullable(),
+    latestRun: SyncRunSchema.nullable(),
+    createdAt: z.string().datetime(),
+  })
+  .openapi('Integration');
+
+const ScheduleMinutes = z.number().int().min(5).max(10080);
+
+export const IntegrationInputSchema = z
+  .object({
+    type: IntegrationTypeSchema,
+    name: z.string().trim().min(1).max(100),
+    config: z.record(z.unknown()),
+    credentials: z
+      .string()
+      .min(1)
+      .max(2000)
+      .describe('Zugriffstoken der Quelle (wird verschlüsselt gespeichert)'),
+    scheduleMinutes: ScheduleMinutes.optional(),
+  })
+  .openapi('IntegrationInput');
+
+export const IntegrationPatchSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100).optional(),
+    config: z.record(z.unknown()).optional(),
+    credentials: z.string().min(1).max(2000).optional(),
+    scheduleMinutes: ScheduleMinutes.optional(),
+    disabled: z.boolean().optional(),
+  })
+  .openapi('IntegrationPatch');
+
+export const TestResultSchema = z
+  .object({ ok: z.boolean(), message: z.string() })
+  .openapi('TestResult');
+
+export const MergeInputSchema = z
+  .object({
+    duplicateId: z.string().min(1).describe('Die Schuld, die in diese zusammengeführt wird'),
+  })
+  .openapi('MergeInput');

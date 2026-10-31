@@ -83,14 +83,14 @@ Alle Entscheidungen: [ADR-Index](adr/README.md). Qualitätsziele: [quality-goals
 
 ## Umsetzungsstand
 
-| Bereich                                                  | Stand     |
-| -------------------------------------------------------- | --------- |
-| Schuldenregister, Verlauf, Rechte, Audit                 | umgesetzt |
-| Bewertung, Priorisierung, Überschreiben, Modellversionen | umgesetzt |
-| Anmeldung (Keycloak), generierter API-Client, CI-Prüfung | umgesetzt |
-| Import aus SonarCloud/GitLab, Worker, Zugangsdaten       | geplant   |
-| Dashboard, Zeitverlauf, Export                           | geplant   |
-| Teamverwaltung, Rollenverwaltung, Auditansicht           | geplant   |
+| Bereich                                                                           | Stand                                                                                                       |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Schuldenregister, Verlauf, Rechte, Audit                                          | umgesetzt                                                                                                   |
+| Bewertung, Priorisierung, Überschreiben, Modellversionen                          | umgesetzt                                                                                                   |
+| Anmeldung (Keycloak), generierter API-Client, CI-Prüfung                          | umgesetzt                                                                                                   |
+| Import aus SonarCloud/GitLab, Worker, Zugangsdaten, Zusammenführen von Duplikaten | umgesetzt (geprüft mit Fixtures und einer lokalen Attrappe der Quelle, noch nicht gegen die echten Dienste) |
+| Dashboard, Zeitverlauf, Export                                                    | geplant                                                                                                     |
+| Teamverwaltung, Rollenverwaltung, Auditansicht                                    | geplant                                                                                                     |
 
 Die Aufgabenliste mit dem genauen Fortschritt steht in
 [tasks.md](../../specs/001-tech-debt-management/tasks.md).

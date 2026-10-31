@@ -2,7 +2,7 @@ import type { PrismaClient, User } from '@tessera/db';
 import { AppError, errorBodySchema } from '@tessera/domain';
 import { ZodError, type ZodTypeAny, type z as zt } from 'zod';
 import { bearerToken, syncUser } from '../auth/verify-token';
-import { getDeps } from '../lib/deps';
+import { getDeps, type Deps } from '../lib/deps';
 import { logger } from '../lib/logger';
 import { registry, ErrorSchema } from './registry';
 
@@ -24,6 +24,7 @@ interface RouteSpec<P extends ZodTypeAny, Q extends ZodTypeAny, B extends ZodTyp
 }
 
 export interface RouteContext<P, Q, B> {
+  deps: Deps;
   db: PrismaClient;
   user: User;
   params: P;
@@ -84,7 +85,8 @@ export function defineRoute<
 
   const handle = async (req: Request, nextCtx: NextCtx): Promise<Response> => {
     try {
-      const { db, verifyToken } = getDeps();
+      const deps = getDeps();
+      const { db, verifyToken } = deps;
       const identity = await verifyToken(bearerToken(req.headers.get('authorization')));
       const user = await syncUser(db, identity);
 
@@ -96,7 +98,7 @@ export function defineRoute<
         : undefined;
       const body = spec.body ? spec.body.parse(await readJson(req)) : undefined;
 
-      const result = await handler({ db, user, params, query, body });
+      const result = await handler({ deps, db, user, params, query, body });
       if (spec.success.status === 204 || result === undefined) {
         return new Response(null, { status: spec.success.status });
       }

@@ -2,7 +2,7 @@
 
 - **Status:** Akzeptiert
 - **Datum:** 2026-10-31
-- **Umsetzungsstand:** geplant (Worker-Gerüst vorhanden)
+- **Umsetzungsstand:** umgesetzt (Importe und Zeitplan); Tages-Snapshots folgen mit US4
 
 ## Kontext
 

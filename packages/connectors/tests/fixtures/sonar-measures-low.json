@@ -1,0 +1,6 @@
+{
+  "component": {
+    "key": "demo",
+    "measures": [{ "metric": "duplicated_lines_density", "value": "0.8" }]
+  }
+}

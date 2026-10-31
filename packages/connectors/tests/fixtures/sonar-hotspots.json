@@ -1,0 +1,12 @@
+{
+  "paging": { "pageIndex": 1, "pageSize": 500, "total": 1 },
+  "hotspots": [
+    {
+      "key": "HS1",
+      "message": "Zufallszahlengenerator ist nicht kryptografisch sicher",
+      "component": "demo:src/Token.java",
+      "line": 12,
+      "vulnerabilityProbability": "MEDIUM"
+    }
+  ]
+}

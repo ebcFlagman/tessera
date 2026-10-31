@@ -2,6 +2,7 @@ import type { DebtEvent, DebtItem, Prisma, PrismaClient, User } from '@tessera/d
 import { AppError, validateTransition } from '@tessera/domain';
 import { requireProductRole } from '../auth/authorize';
 import { writeAudit } from './audit';
+import { attachSource, type SourceRef } from './sources';
 
 export interface DebtCreate {
   productId: string;
@@ -62,6 +63,8 @@ export function toDebtDto(d: DebtItem) {
     priorityEffective: d.priorityEffective,
     createdAt: d.createdAt.toISOString(),
     updatedAt: d.updatedAt.toISOString(),
+    /** filled by attachSource(s) */
+    source: null as SourceRef | null,
   };
 }
 
@@ -180,7 +183,7 @@ export async function getDebtWithHistory(db: PrismaClient, id: string) {
   const actors = await db.user.findMany({ where: { id: { in: actorIds } } });
   const names = new Map(actors.map((a) => [a.id, a.name]));
   return {
-    ...toDebtDto(debt),
+    ...(await attachSource(db, toDebtDto(debt))),
     events: debt.events.map((e) =>
       toEventDto({ ...e, actorName: e.actorId ? names.get(e.actorId) : null }),
     ),

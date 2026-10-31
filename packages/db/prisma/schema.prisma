@@ -25,15 +25,34 @@ enum DebtStatus {
   accepted
 }
 
+enum IntegrationType {
+  sonarcloud
+  gitlab
+}
+
+enum IntegrationStatus {
+  ok
+  error
+  disabled
+}
+
+enum SyncState {
+  queued
+  running
+  succeeded
+  failed
+}
+
 model Product {
-  id          String       @id @default(cuid())
-  name        String       @unique
-  description String?
-  archivedAt  DateTime?    @map("archived_at")
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  memberships Membership[]
-  debts       DebtItem[]
+  id           String        @id @default(cuid())
+  name         String        @unique
+  description  String?
+  archivedAt   DateTime?     @map("archived_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  memberships  Membership[]
+  debts        DebtItem[]
+  integrations Integration[]
 
   @@map("product")
 }
@@ -138,6 +157,7 @@ model DebtItem {
   team        Team?        @relation(fields: [teamId], references: [id])
   events      DebtEvent[]
   assessments Assessment[]
+  findings    Finding[]
 
   @@index([priorityCalculated])
   @@index([priorityOverride])
@@ -197,4 +217,74 @@ model Assessment {
 
   @@index([debtId, assessedAt])
   @@map("assessment")
+}
+
+/// Connection of a product to an external source. Credentials are encrypted (AES-256-GCM).
+model Integration {
+  id                   String            @id @default(cuid())
+  productId            String            @map("product_id")
+  type                 IntegrationType
+  name                 String
+  /// source specific settings, validated by the connector (never contains secrets)
+  config               Json              @default("{}")
+  credentialsEncrypted String            @map("credentials_encrypted")
+  /// minutes between automatic imports
+  scheduleMinutes      Int               @default(60) @map("schedule_minutes")
+  status               IntegrationStatus @default(ok)
+  lastAttemptAt        DateTime?         @map("last_attempt_at")
+  lastSyncAt           DateTime?         @map("last_sync_at")
+  lastError            String?           @map("last_error")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  product  Product   @relation(fields: [productId], references: [id])
+  syncRuns SyncRun[]
+  findings Finding[]
+
+  @@index([productId])
+  @@map("integration")
+}
+
+model SyncRun {
+  id            String    @id @default(cuid())
+  integrationId String    @map("integration_id")
+  state         SyncState @default(queued)
+  /// "manual" | "schedule"
+  trigger       String
+  requestedBy   String?   @map("requested_by")
+  startedAt     DateTime? @map("started_at")
+  finishedAt    DateTime? @map("finished_at")
+  /// { created, updated, repaid, reopened, unchanged, total }
+  counts        Json      @default("{}")
+  error         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId, createdAt])
+  @@map("sync_run")
+}
+
+/// One finding of a source system, linked to the debt it feeds. Several findings may feed one debt.
+model Finding {
+  id            String    @id @default(cuid())
+  integrationId String    @map("integration_id")
+  externalId    String    @map("external_id")
+  debtId        String    @map("debt_id")
+  fingerprint   String
+  /// url of the finding in the source system
+  url           String?
+  raw           Json
+  /// source values that differ from manually maintained fields: [{ field, sourceValue }]
+  conflicts     Json      @default("[]")
+  firstSeenAt   DateTime  @default(now()) @map("first_seen_at")
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at")
+  goneAt        DateTime? @map("gone_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  debt        DebtItem    @relation(fields: [debtId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, externalId])
+  @@index([debtId])
+  @@map("finding")
 }

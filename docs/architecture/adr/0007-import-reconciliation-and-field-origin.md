@@ -2,7 +2,7 @@
 
 - **Status:** Akzeptiert
 - **Datum:** 2026-10-31
-- **Umsetzungsstand:** geplant
+- **Umsetzungsstand:** umgesetzt
 
 ## Kontext
 

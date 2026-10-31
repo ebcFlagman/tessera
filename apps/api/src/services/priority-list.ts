@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@tessera/db';
 import { toDebtDto } from './debts';
+import { attachSources } from './sources';
 
 export interface PriorityListQuery {
   productId?: string | undefined;
@@ -35,8 +36,8 @@ export async function priorityList(db: PrismaClient, q: PriorityListQuery) {
     db.debtItem.count({ where: { ...base, priorityEffective: null } }),
   ]);
   return {
-    ranked: ranked.map((d, i) => ({ rank: i + 1, ...toDebtDto(d) })),
-    unassessed: unassessed.map(toDebtDto),
+    ranked: (await attachSources(db, ranked.map(toDebtDto))).map((d, i) => ({ rank: i + 1, ...d })),
+    unassessed: await attachSources(db, unassessed.map(toDebtDto)),
     unassessedTotal,
   };
 }

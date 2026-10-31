@@ -28,5 +28,6 @@ pnpm dev                                                  # web, api, worker
 pnpm test            # Unit + Integration (Testcontainers)
 pnpm test:contract   # Backend gegen erzeugte OpenAPI-Spezifikation
 pnpm --filter @tessera/web exec playwright install chromium   # einmalig
-pnpm test:e2e        # Playwright, P1-Flows (Stack und `pnpm dev` müssen laufen)
+pnpm test:e2e        # Playwright (Stack und `pnpm dev` inkl. Worker müssen laufen;
+                     # der Import-Test braucht SOURCE_ALLOWED_HOSTS=localhost)
 ```

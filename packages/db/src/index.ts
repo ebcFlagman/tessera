@@ -9,3 +9,5 @@ export function getDb(): PrismaClient {
   globalForPrisma.prisma ??= new PrismaClient();
   return globalForPrisma.prisma;
 }
+
+export * from './jobs';

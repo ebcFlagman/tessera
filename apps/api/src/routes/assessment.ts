@@ -9,6 +9,7 @@ import {
   toModelDto,
 } from '../services/assessment';
 import { toDebtDto } from '../services/debts';
+import { attachSource } from '../services/sources';
 import { priorityList } from '../services/priority-list';
 import { z } from '../openapi/zod';
 import {
@@ -93,7 +94,7 @@ export const putOverride = defineRoute(
     errors: [404],
   },
   async ({ db, user, params, body }) =>
-    toDebtDto(await setPriorityOverride(db, user, params.id, body)),
+    attachSource(db, toDebtDto(await setPriorityOverride(db, user, params.id, body))),
 );
 
 export const deleteOverride = defineRoute(
@@ -106,7 +107,8 @@ export const deleteOverride = defineRoute(
     success: { status: 200, schema: DebtSchema, description: 'Entfernt' },
     errors: [404],
   },
-  async ({ db, user, params }) => toDebtDto(await clearPriorityOverride(db, user, params.id)),
+  async ({ db, user, params }) =>
+    attachSource(db, toDebtDto(await clearPriorityOverride(db, user, params.id))),
 );
 
 export const getPriorityList = defineRoute(

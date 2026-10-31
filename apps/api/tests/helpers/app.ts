@@ -1,5 +1,8 @@
 import { getDb, type PrismaClient, type Role } from '@tessera/db';
-import { setDeps } from '../../src/lib/deps';
+import { randomBytes } from 'node:crypto';
+import { loadKeyring } from '@tessera/domain';
+import { getConnector } from '@tessera/connectors';
+import { setDeps, type Deps } from '../../src/lib/deps';
 import type { TokenVerifier } from '../../src/auth/verify-token';
 
 /** Fake OIDC: the token is `test:<subject>:<display name>`. */
@@ -11,15 +14,33 @@ export const fakeVerifier: TokenVerifier = async (token) => {
 
 export const tokenFor = (subject: string, name = subject) => `test:${subject}:${name}`;
 
-export function useTestDeps(): PrismaClient {
+export const testKeyring = loadKeyring({ CREDENTIALS_KEY: randomBytes(32).toString('base64') });
+
+/** Jobs the API "sent" to the queue during a test. */
+export const sentJobs: { syncRunId: string; attempt: number }[] = [];
+
+export function useTestDeps(over: Partial<Deps> = {}): PrismaClient {
   const db = getDb();
-  setDeps({ db, verifyToken: fakeVerifier });
+  setDeps({
+    db,
+    verifyToken: fakeVerifier,
+    getQueue: async () => ({
+      sendSync: async (job) => {
+        sentJobs.push(job);
+      },
+    }),
+    getConnector,
+    getKeyring: () => testKeyring,
+    http: fetch,
+    allowedHosts: [],
+    ...over,
+  });
   return db;
 }
 
 export async function resetDb(db: PrismaClient) {
   await db.$executeRawUnsafe(
-    'TRUNCATE TABLE assessment, assessment_model, debt_event, debt_item, audit_entry, membership, team_member, team, product, app_user RESTART IDENTITY CASCADE',
+    'TRUNCATE TABLE finding, sync_run, integration, assessment, assessment_model, debt_event, debt_item, audit_entry, membership, team_member, team, product, app_user RESTART IDENTITY CASCADE',
   );
 }
 

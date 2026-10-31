@@ -1,0 +1,11 @@
+[
+  {
+    "id": 9003,
+    "iid": 3,
+    "title": "Fehlende Tests im Checkout",
+    "description": "Kaum Abdeckung.",
+    "web_url": "https://gitlab.com/acme/shop/-/issues/3",
+    "labels": ["tech-debt"],
+    "time_stats": { "time_estimate": 28800 }
+  }
+]

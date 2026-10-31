@@ -152,30 +152,30 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 ### Tests für US3
 
-- [ ] T064 [P] [US3] Unit-Tests Abgleich (neu/aktualisiert/fehlend, Feldherkunft schützt manuelle Felder, „getilgt“ überschreibt manuellen Status inkl. „accepted“, Wiedereröffnung bei Wiederauftauchen) in `packages/domain/tests/reconcile.test.ts`
-- [ ] T065 [P] [US3] Connector-Tests mit aufgezeichneten Fixtures (Pagination, 429, ungültige Zugangsdaten) in `packages/connectors/tests/sonarcloud.test.ts`, `packages/connectors/tests/gitlab.test.ts`
-- [ ] T066 [P] [US3] Integrationstest Importlauf inkl. Idempotenz und Fehlerfall (bestehende Daten bleiben unverändert) in `apps/worker/tests/sync.test.ts`
-- [ ] T067 [P] [US3] Vertragstests `/products/{id}/integrations`, `/integrations/{id}`, `/test`, `/sync`, `/sync-runs/{id}` und Test, dass Zugangsdaten nie in Antworten erscheinen, in `apps/api/tests/contract/integrations.test.ts`
-- [ ] T068 [P] [US3] Test: Duplikate zusammenführen (Verlauf und Quellenverweise bleiben erhalten, Audit) in `apps/api/tests/integration/merge-debts.test.ts`
-- [ ] T069 [P] [US3] E2E: Integration anlegen, testen, Import, Ergebnis im Register in `apps/web/tests/e2e/integration.spec.ts`
+- [x] T064 [P] [US3] Unit-Tests Abgleich (neu/aktualisiert/fehlend, Feldherkunft schützt manuelle Felder, „getilgt“ überschreibt manuellen Status inkl. „accepted“, Wiedereröffnung bei Wiederauftauchen) in `packages/domain/tests/reconcile.test.ts`
+- [x] T065 [P] [US3] Connector-Tests mit aufgezeichneten Fixtures (Pagination, 429, ungültige Zugangsdaten) in `packages/connectors/tests/sonarcloud.test.ts`, `packages/connectors/tests/gitlab.test.ts`
+- [x] T066 [P] [US3] Integrationstest Importlauf inkl. Idempotenz und Fehlerfall (bestehende Daten bleiben unverändert) in `apps/worker/tests/sync.test.ts`
+- [x] T067 [P] [US3] Vertragstests `/products/{id}/integrations`, `/integrations/{id}`, `/test`, `/sync`, `/sync-runs/{id}` und Test, dass Zugangsdaten nie in Antworten erscheinen, in `apps/api/tests/contract/integrations.test.ts`
+- [x] T068 [P] [US3] Test: Duplikate zusammenführen (Verlauf und Quellenverweise bleiben erhalten, Audit) in `apps/api/tests/integration/merge-debts.test.ts`
+- [x] T069 [P] [US3] E2E: Integration anlegen, testen, Import, Ergebnis im Register in `apps/web/tests/e2e/integration.spec.ts`
 
 ### Implementation für US3
 
-- [ ] T070 [P] [US3] Prisma-Modelle `Integration` (`credentials_encrypted`, `key_id`, `schedule` Standard stündlich, `status`), `SyncRun`, `Finding` (eindeutig (integration_id, external_id), `raw` JSONB, `gone_at?`) in `packages/db/prisma/schema.prisma`; Migration
-- [ ] T071 [P] [US3] Verschlüsselung der Zugangsdaten (AES-256-GCM, Schlüssel-ID für Rotation) in `packages/domain/src/crypto.ts`
-- [ ] T072 [P] [US3] Connector-Schnittstelle und Fehlertypen (`Unreachable`, `InvalidCredentials`, `PartialData`) laut `contracts/connector-interface.md` in `packages/connectors/src/types.ts`
-- [ ] T073 [P] [US3] SonarCloud-Connector (Web-API: Issues, Hotspots, Duplikate; Pagination, Rate-Limit) in `packages/connectors/src/sonarcloud/`
-- [ ] T074 [P] [US3] GitLab-Cloud-Connector (REST-API: Issues mit konfigurierbarem Label, optional Code-Quality) in `packages/connectors/src/gitlab/`
-- [ ] T075 [US3] Abgleichslogik (reine Funktionen) in `packages/domain/src/reconcile.ts`
-- [ ] T076 [US3] Import-Job: Connector aufrufen, abgleichen, Zähler und Fortschritt im `SyncRun`, Rate-Limit-Pausen in `apps/worker/src/jobs/sync-integration.ts`
-- [ ] T077 [US3] pg-boss-Setup, Zeitplan pro Integration (Standard stündlich), Wiederholung mit Backoff in `apps/worker/src/scheduler.ts`
-- [ ] T078 [US3] Integrations-Service (anlegen, ändern, trennen, testen, Import anstoßen (legt den Job über dieselbe pg-boss-Queue an, die der Worker abarbeitet), Zugangsdaten verschlüsseln, Audit) in `apps/api/src/services/integrations.ts`
-- [ ] T079 [US3] Routen laut Test T067 (nur admin; `POST /sync` antwortet 202 mit SyncRun-ID) in `apps/api/src/app/api/v1/integrations/`, `.../products/[id]/integrations/`, `.../sync-runs/`
-- [ ] T080 [US3] Merge-Service und Route `POST /api/v1/debts/{id}/merge` (Duplikat in Ziel-Schuld zusammenführen) in `apps/api/src/services/merge-debts.ts`, `apps/api/src/app/api/v1/debts/[id]/merge/route.ts`
-- [ ] T081 [US3] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
-- [ ] T082 [P] [US3] Frontend: Integrationsverwaltung (anlegen, testen, Zeitplan, Status, letzter Abgleich, verständliche Fehler; bei Status „error“ durch abgelaufene/ungültige Zugangsdaten gut sichtbarer Hinweis für Administratoren in der Anwendung) in `apps/web/src/app/integrations/page.tsx`
-- [ ] T083 [P] [US3] Frontend: Importfortschritt und Quellenverweis in Registerliste/Detailseite in `apps/web/src/components/debt/SourceBadge.tsx`
-- [ ] T084 [P] [US3] Frontend: Hinweis zu Konflikten bei manuell geänderten Feldern und Duplikat-Zusammenführung in `apps/web/src/components/debt/MergeDuplicates.tsx`
+- [x] T070 [P] [US3] Prisma-Modelle `Integration` (`credentials_encrypted`, `key_id`, `schedule` Standard stündlich, `status`), `SyncRun`, `Finding` (eindeutig (integration_id, external_id), `raw` JSONB, `gone_at?`) in `packages/db/prisma/schema.prisma`; Migration
+- [x] T071 [P] [US3] Verschlüsselung der Zugangsdaten (AES-256-GCM, Schlüssel-ID für Rotation) in `packages/domain/src/crypto.ts`
+- [x] T072 [P] [US3] Connector-Schnittstelle und Fehlertypen (`Unreachable`, `InvalidCredentials`, `PartialData`) laut `contracts/connector-interface.md` in `packages/connectors/src/types.ts`
+- [x] T073 [P] [US3] SonarCloud-Connector (Web-API: Issues, Hotspots, Duplikate; Pagination, Rate-Limit) in `packages/connectors/src/sonarcloud/`
+- [x] T074 [P] [US3] GitLab-Cloud-Connector (REST-API: Issues mit konfigurierbarem Label, optional Code-Quality) in `packages/connectors/src/gitlab/`
+- [x] T075 [US3] Abgleichslogik (reine Funktionen) in `packages/domain/src/reconcile.ts`
+- [x] T076 [US3] Import-Job: Connector aufrufen, abgleichen, Zähler und Fortschritt im `SyncRun`, Rate-Limit-Pausen in `apps/worker/src/jobs/sync-integration.ts`
+- [x] T077 [US3] pg-boss-Setup, Zeitplan pro Integration (Standard stündlich), Wiederholung mit Backoff in `apps/worker/src/scheduler.ts`
+- [x] T078 [US3] Integrations-Service (anlegen, ändern, trennen, testen, Import anstoßen (legt den Job über dieselbe pg-boss-Queue an, die der Worker abarbeitet), Zugangsdaten verschlüsseln, Audit) in `apps/api/src/services/integrations.ts`
+- [x] T079 [US3] Routen laut Test T067 (nur admin; `POST /sync` antwortet 202 mit SyncRun-ID) in `apps/api/src/app/api/v1/integrations/`, `.../products/[id]/integrations/`, `.../sync-runs/`
+- [x] T080 [US3] Merge-Service und Route `POST /api/v1/debts/{id}/merge` (Duplikat in Ziel-Schuld zusammenführen) in `apps/api/src/services/merge-debts.ts`, `apps/api/src/app/api/v1/debts/[id]/merge/route.ts`
+- [x] T081 [US3] OpenAPI-Spezifikation und Client neu generieren und einchecken (`apps/api/openapi.generated.json`, `packages/api-types/`)
+- [x] T082 [P] [US3] Frontend: Integrationsverwaltung (anlegen, testen, Zeitplan, Status, letzter Abgleich, verständliche Fehler; bei Status „error“ durch abgelaufene/ungültige Zugangsdaten gut sichtbarer Hinweis für Administratoren in der Anwendung) in `apps/web/src/app/integrations/page.tsx`
+- [x] T083 [P] [US3] Frontend: Importfortschritt und Quellenverweis in Registerliste/Detailseite in `apps/web/src/components/debt/SourceBadge.tsx`
+- [x] T084 [P] [US3] Frontend: Hinweis zu Konflikten bei manuell geänderten Feldern und Duplikat-Zusammenführung in `apps/web/src/components/debt/MergeDuplicates.tsx`
 
 **Checkpoint**: Mindestens eine Quelle lässt sich Ende-zu-Ende importieren.
 

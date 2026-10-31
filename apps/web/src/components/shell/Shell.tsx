@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { auth, signOut } from '@/lib/auth';
+import { IntegrationAlert } from './IntegrationAlert';
 
 export async function Shell({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -12,6 +13,7 @@ export async function Shell({ children }: { children: React.ReactNode }) {
         <nav style={{ display: 'flex', gap: 12 }} aria-label="Hauptnavigation">
           <Link href="/register">Register</Link>
           <Link href="/priorities">Prioritäten</Link>
+          <Link href="/integrations">Integrationen</Link>
           <Link href="/settings/assessment-model">Bewertungsmodell</Link>
         </nav>
         <span style={{ marginLeft: 'auto' }}>
@@ -27,6 +29,7 @@ export async function Shell({ children }: { children: React.ReactNode }) {
           </form>
         </span>
       </header>
+      <IntegrationAlert />
       <main>{children}</main>
     </div>
   );

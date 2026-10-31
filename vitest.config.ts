@@ -19,11 +19,18 @@ export default defineConfig({
         },
       },
       {
+        test: { name: 'connectors', root: 'packages/connectors', include: ['tests/**/*.test.ts'] },
+      },
+      {
         test: {
           name: 'worker',
           root: 'apps/worker',
           include: ['tests/**/*.test.ts'],
-          passWithNoTests: true,
+          globalSetup: ['tests/global-setup.ts'],
+          pool: 'forks',
+          poolOptions: { forks: { singleFork: true } },
+          testTimeout: 30000,
+          hookTimeout: 120000,
         },
       },
     ],

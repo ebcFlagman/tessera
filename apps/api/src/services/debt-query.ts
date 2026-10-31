@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@tessera/db';
 import { toDebtDto } from './debts';
+import { attachSources } from './sources';
 
 export interface DebtQuery {
   q?: string | undefined;
@@ -7,6 +8,7 @@ export interface DebtQuery {
   status?: 'open' | 'planned' | 'in_progress' | 'repaid' | 'accepted' | undefined;
   productId?: string | undefined;
   ownerId?: string | undefined;
+  source?: 'manual' | 'sonarcloud' | 'gitlab' | undefined;
   includeArchived: boolean;
   sort:
     | 'createdAt'
@@ -29,6 +31,11 @@ export async function queryDebts(db: PrismaClient, query: DebtQuery) {
     ...(query.status ? { status: query.status } : {}),
     ...(query.productId ? { productId: query.productId } : {}),
     ...(query.ownerId ? { ownerId: query.ownerId } : {}),
+    ...(query.source === 'manual'
+      ? { findings: { none: {} } }
+      : query.source
+        ? { findings: { some: { integration: { type: query.source } } } }
+        : {}),
     ...(query.q
       ? {
           OR: [
@@ -53,7 +60,7 @@ export async function queryDebts(db: PrismaClient, query: DebtQuery) {
   });
   const page = rows.slice(0, query.limit);
   return {
-    items: page.map(toDebtDto),
+    items: await attachSources(db, page.map(toDebtDto)),
     nextCursor: rows.length > query.limit ? rows[query.limit]!.id : null,
   };
 }

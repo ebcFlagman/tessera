@@ -1,5 +1,7 @@
 import { defineRoute } from '../openapi/route';
 import { queryDebts } from '../services/debt-query';
+import { attachSource } from '../services/sources';
+import { mergeDebts } from '../services/merge-debts';
 import { createDebt, getDebtWithHistory, toDebtDto, updateDebt } from '../services/debts';
 import {
   DebtDetailSchema,
@@ -9,6 +11,7 @@ import {
   DebtPatchSchema,
   DebtSchema,
   IdParams,
+  MergeInputSchema,
 } from './schemas';
 
 export const listDebts = defineRoute(
@@ -34,7 +37,7 @@ export const postDebt = defineRoute(
     success: { status: 201, schema: DebtSchema, description: 'Erstellt' },
     errors: [404, 409],
   },
-  async ({ db, user, body }) => toDebtDto(await createDebt(db, user, body)),
+  async ({ db, user, body }) => attachSource(db, toDebtDto(await createDebt(db, user, body))),
 );
 
 export const getDebt = defineRoute(
@@ -61,5 +64,22 @@ export const patchDebt = defineRoute(
     success: { status: 200, schema: DebtSchema, description: 'Aktualisiert' },
     errors: [404],
   },
-  async ({ db, user, params, body }) => toDebtDto(await updateDebt(db, user, params.id, body)),
+  async ({ db, user, params, body }) =>
+    attachSource(db, toDebtDto(await updateDebt(db, user, params.id, body))),
+);
+
+export const postMerge = defineRoute(
+  {
+    method: 'post',
+    path: '/debts/{id}/merge',
+    summary:
+      'Duplikat in diese Schuld zusammenführen (Quellenverweise und Verlauf werden übernommen)',
+    tags: ['Schulden'],
+    params: IdParams,
+    body: MergeInputSchema,
+    success: { status: 200, schema: DebtSchema, description: 'Zusammengeführte Schuld' },
+    errors: [404, 409],
+  },
+  async ({ db, user, params, body }) =>
+    attachSource(db, toDebtDto(await mergeDebts(db, user, params.id, body.duplicateId))),
 );

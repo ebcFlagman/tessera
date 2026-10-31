@@ -5,7 +5,9 @@ import { use } from 'react';
 import { AssessmentPanel } from '@/components/debt/AssessmentPanel';
 import { DebtForm, type DebtFormValues } from '@/components/debt/DebtForm';
 import { PriorityOverride } from '@/components/debt/PriorityOverride';
-import { statusLabels } from '@/components/debt/labels';
+import { describeEvent } from '@/components/debt/events';
+import { MergeDuplicates, ConflictNotice } from '@/components/debt/MergeDuplicates';
+import { SourceBadge } from '@/components/debt/SourceBadge';
 import { ErrorState, Loading } from '@/components/shell/states';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
@@ -66,35 +68,17 @@ export default function DebtDetailPage({ params }: { params: Promise<{ id: strin
           await qc.invalidateQueries({ queryKey: ['debts'] });
         }}
       />
+      <h2>Herkunft</h2>
+      <SourceBadge source={d.source} detailed />
+      <ConflictNotice source={d.source} />
       <PriorityOverride debtId={id} priority={d} />
       <AssessmentPanel debtId={id} />
+      <MergeDuplicates debtId={id} productId={d.productId} />
       <h2>Verlauf</h2>
       <ul>
         {d.events.map((e) => (
           <li key={e.id}>
-            {new Date(e.at).toLocaleString('de-CH')} – {e.actorName ?? 'System'}:{' '}
-            {e.type === 'status_changed'
-              ? `Status geändert (${Object.entries(e.changes)
-                  .filter(([k]) => k === 'status')
-                  .map(([, c]) => {
-                    const ch = c as {
-                      from: keyof typeof statusLabels;
-                      to: keyof typeof statusLabels;
-                    };
-                    return `${statusLabels[ch.from]} → ${statusLabels[ch.to]}`;
-                  })
-                  .join(', ')})`
-              : e.type === 'created'
-                ? 'angelegt'
-                : e.type === 'archived'
-                  ? 'archiviert'
-                  : e.type === 'assessed'
-                    ? 'bewertet'
-                    : e.type === 'priority_overridden'
-                      ? 'Priorität überschrieben'
-                      : e.type === 'priority_override_removed'
-                        ? 'Überschreibung entfernt'
-                        : `geändert (${Object.keys(e.changes).join(', ')})`}
+            {new Date(e.at).toLocaleString('de-CH')} – {e.actorName ?? 'System'}: {describeEvent(e)}
           </li>
         ))}
       </ul>

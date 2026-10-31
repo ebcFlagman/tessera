@@ -2,7 +2,7 @@
 
 - **Status:** Akzeptiert
 - **Datum:** 2026-10-31
-- **Umsetzungsstand:** teilweise (Redaction umgesetzt; Verschlüsselung folgt mit US3)
+- **Umsetzungsstand:** umgesetzt (AES-256-GCM mit Schlüssel-ID und Rotation, Redaction in Logs und Audit)
 
 ## Kontext
 

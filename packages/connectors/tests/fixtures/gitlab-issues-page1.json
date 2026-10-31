@@ -1,0 +1,20 @@
+[
+  {
+    "id": 9001,
+    "iid": 1,
+    "title": "Monolith-Modul Abrechnung entkoppeln",
+    "description": "Abrechnung greift direkt auf Kundendaten zu.",
+    "web_url": "https://gitlab.com/acme/shop/-/issues/1",
+    "labels": ["tech-debt", "architecture"],
+    "time_stats": { "time_estimate": 144000 }
+  },
+  {
+    "id": 9002,
+    "iid": 2,
+    "title": "Veraltete Bibliothek ersetzen",
+    "description": null,
+    "web_url": "https://gitlab.com/acme/shop/-/issues/2",
+    "labels": ["tech-debt"],
+    "time_stats": { "time_estimate": 0 }
+  }
+]

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
+    "@tessera/connectors": "workspace:^",
     "@tessera/db": "workspace:*",
     "@tessera/domain": "workspace:*",
     "jose": "^5.10.0",

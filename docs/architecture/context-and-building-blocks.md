@@ -47,15 +47,15 @@ flowchart TB
 
 ### Pakete und Verantwortung
 
-| Baustein    | Pfad                  | Verantwortung                                                                                                             | Stand                                                         |
-| ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Web         | `apps/web`            | Oberfläche (Register, Detail, Prioritäten, Modellpflege), Login per Auth.js, ruft die API nur über den generierten Client | umgesetzt (Register, Bewertung); Dashboard/Verwaltung geplant |
-| API         | `apps/api`            | Routen mit Zod-Schemas, Rechteprüfung, Services; erzeugt die OpenAPI-Spezifikation                                        | umgesetzt für Produkte, Benutzer, Schulden, Bewertung         |
-| Worker      | `apps/worker`         | Importjobs, Zeitpläne, Tages-Snapshots (pg-boss)                                                                          | Gerüst, Funktionen geplant (US3, US4)                         |
-| Domäne      | `packages/domain`     | reine Fachlogik: Statusregeln, Bewertung, Fehler                                                                          | umgesetzt; Abgleich geplant                                   |
-| Datenbank   | `packages/db`         | Prisma-Schema, Migrationen, Seed                                                                                          | umgesetzt                                                     |
-| Connectoren | `packages/connectors` | Schnittstelle und Quellen (SonarCloud, GitLab)                                                                            | geplant (US3)                                                 |
-| API-Typen   | `packages/api-types`  | aus der OpenAPI-Spezifikation generierte Typen                                                                            | umgesetzt (generiert)                                         |
+| Baustein    | Pfad                  | Verantwortung                                                                                                             | Stand                                                           |
+| ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Web         | `apps/web`            | Oberfläche (Register, Detail, Prioritäten, Modellpflege), Login per Auth.js, ruft die API nur über den generierten Client | umgesetzt (Register, Bewertung); Dashboard/Verwaltung geplant   |
+| API         | `apps/api`            | Routen mit Zod-Schemas, Rechteprüfung, Services; erzeugt die OpenAPI-Spezifikation                                        | umgesetzt für Produkte, Benutzer, Schulden, Bewertung           |
+| Worker      | `apps/worker`         | Importjobs, Zeitpläne, Tages-Snapshots (pg-boss)                                                                          | umgesetzt (Importjobs, Zeitplan); Tages-Snapshots geplant (US4) |
+| Domäne      | `packages/domain`     | reine Fachlogik: Statusregeln, Bewertung, Fehler                                                                          | umgesetzt; Abgleich geplant                                     |
+| Datenbank   | `packages/db`         | Prisma-Schema, Migrationen, Seed                                                                                          | umgesetzt                                                       |
+| Connectoren | `packages/connectors` | Schnittstelle und Quellen (SonarCloud, GitLab)                                                                            | umgesetzt (SonarCloud, GitLab Cloud)                            |
+| API-Typen   | `packages/api-types`  | aus der OpenAPI-Spezifikation generierte Typen                                                                            | umgesetzt (generiert)                                           |
 
 ### Abhängigkeitsregeln
 
@@ -87,7 +87,7 @@ sequenceDiagram
 Abgelaufene Access-Tokens erneuert das Frontend über das Refresh-Token. Schlägt das fehl,
 fordert die Startseite zur erneuten Anmeldung auf. „Abmelden“ beendet auch die Keycloak-Sitzung.
 
-## Ablauf: Import (geplant, US3)
+## Ablauf: Import
 
 ```mermaid
 sequenceDiagram
