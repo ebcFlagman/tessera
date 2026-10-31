@@ -17,6 +17,11 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    // plain Node scripts
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
+  },
+  {
     // Constitution VII: the frontend talks to the API only through the generated client.
     files: ['apps/web/src/**/*.{ts,tsx}'],
     ignores: ['apps/web/src/lib/api.ts', 'apps/web/src/lib/auth.ts'],
