@@ -14,7 +14,10 @@
           "name": "tessera-api-audience",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
-          "config": { "included.custom.audience": "tessera-api", "access.token.claim": "true" }
+          "config": {
+            "included.custom.audience": "tessera-api",
+            "access.token.claim": "true"
+          }
         }
       ]
     }
@@ -26,7 +29,14 @@
       "firstName": "Ada",
       "lastName": "Admin",
       "enabled": true,
-      "credentials": [{ "type": "password", "value": "admin", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000001"
     },
     {
       "username": "editor",
@@ -34,7 +44,14 @@
       "firstName": "Eddi",
       "lastName": "Editor",
       "enabled": true,
-      "credentials": [{ "type": "password", "value": "editor", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "editor",
+          "temporary": false
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000002"
     },
     {
       "username": "norole",
@@ -42,7 +59,14 @@
       "firstName": "Nora",
       "lastName": "Ohnerolle",
       "enabled": true,
-      "credentials": [{ "type": "password", "value": "norole", "temporary": false }]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "norole",
+          "temporary": false
+        }
+      ],
+      "id": "00000000-0000-4000-8000-000000000003"
     }
   ]
 }

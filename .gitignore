@@ -42,3 +42,6 @@ dist/
 coverage/
 test-results/
 playwright-report/
+
+# build output of the apps
+.next/

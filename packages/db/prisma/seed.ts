@@ -14,10 +14,23 @@ async function main() {
     create: { name: 'Webshop', description: 'Beispielprodukt (Testdaten)' },
   });
 
+  // subjects equal the fixed user ids in deploy/keycloak/tessera-realm.json
   const users = [
-    { subject: 'dev-admin', name: 'Ada Admin', email: 'admin@example.test' },
-    { subject: 'dev-editor', name: 'Eddi Editor', email: 'editor@example.test' },
-    { subject: 'dev-norole', name: 'Nora Ohnerolle', email: 'norole@example.test' },
+    {
+      subject: '00000000-0000-4000-8000-000000000001',
+      name: 'Ada Admin',
+      email: 'admin@example.test',
+    },
+    {
+      subject: '00000000-0000-4000-8000-000000000002',
+      name: 'Eddi Editor',
+      email: 'editor@example.test',
+    },
+    {
+      subject: '00000000-0000-4000-8000-000000000003',
+      name: 'Nora Ohnerolle',
+      email: 'norole@example.test',
+    },
   ];
   const created = [];
   for (const u of users) {

@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { kindLabels, statusLabels } from '@/components/debt/labels';
 import { Empty, ErrorState, Loading } from '@/components/shell/states';
-import { unwrap, useApi } from '@/lib/api';
+import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 type Kind = keyof typeof kindLabels;
 type Status = keyof typeof statusLabels;
 
 export default function RegisterPage() {
   const api = useApi();
+  const ready = useApiReady();
   const [q, setQ] = useState('');
   const [kind, setKind] = useState<Kind | ''>('');
   const [status, setStatus] = useState<Status | ''>('');
@@ -20,11 +21,13 @@ export default function RegisterPage() {
 
   const products = useQuery({
     queryKey: ['products'],
+    enabled: ready,
     queryFn: async () => unwrap(await api.GET('/products', { params: { query: {} } })),
   });
 
   const debts = useInfiniteQuery({
     queryKey: ['debts', { q, kind, status, productId, sort }],
+    enabled: ready,
     queryFn: async ({ pageParam }) =>
       unwrap(
         await api.GET('/debts', {

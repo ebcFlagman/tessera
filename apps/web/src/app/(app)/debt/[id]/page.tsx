@@ -5,15 +5,17 @@ import { use } from 'react';
 import { DebtForm, type DebtFormValues } from '@/components/debt/DebtForm';
 import { statusLabels } from '@/components/debt/labels';
 import { ErrorState, Loading } from '@/components/shell/states';
-import { unwrap, useApi } from '@/lib/api';
+import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 export default function DebtDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const api = useApi();
+  const ready = useApiReady();
   const qc = useQueryClient();
 
   const debt = useQuery({
     queryKey: ['debt', id],
+    enabled: ready,
     queryFn: async () => unwrap(await api.GET('/debts/{id}', { params: { path: { id } } })),
   });
 

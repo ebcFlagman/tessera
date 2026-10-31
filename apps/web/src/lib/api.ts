@@ -30,6 +30,12 @@ export function useApi() {
   return useMemo(() => createApiClient(() => token), [token]);
 }
 
+/** True once the session (and with it the access token) is available; gate queries on it. */
+export function useApiReady(): boolean {
+  const { data, status } = useSession();
+  return status === 'authenticated' && !!data?.accessToken;
+}
+
 /** Unwraps an openapi-fetch result or throws a readable error for TanStack Query. */
 export function unwrap<T>(result: { data?: T; error?: unknown }): T {
   if (result.data !== undefined) return result.data;

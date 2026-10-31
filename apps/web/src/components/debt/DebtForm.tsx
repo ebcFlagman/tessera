@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { kindLabels, statusLabels } from './labels';
-import { unwrap, useApi } from '@/lib/api';
+import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 export interface DebtFormValues {
   productId: string;
@@ -67,16 +67,19 @@ export function DebtForm(props: {
   }) => Promise<void>;
 }) {
   const api = useApi();
+  const ready = useApiReady();
   const [v, setV] = useState(props.initial);
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const products = useQuery({
     queryKey: ['products'],
+    enabled: ready,
     queryFn: async () => unwrap(await api.GET('/products', { params: { query: {} } })),
   });
   const users = useQuery({
     queryKey: ['users'],
+    enabled: ready,
     queryFn: async () => unwrap(await api.GET('/users', { params: { query: {} } })),
   });
 
