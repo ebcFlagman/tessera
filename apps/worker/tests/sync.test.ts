@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConnectorError } from '@tessera/connectors';
 import { runSync } from '../src/jobs/sync-integration';
 import {
@@ -201,6 +201,10 @@ describe('import run', () => {
   });
 
   it('turns an unexpected error into a generic message without internals', async () => {
+    const logged: string[] = [];
+    const spy = vi.spyOn(console, 'error').mockImplementation((...a: unknown[]) => {
+      logged.push(a.map(String).join(' '));
+    });
     source.connector.fetchFindings = () => ({
       [Symbol.asyncIterator]: () => ({
         next: async () => {
@@ -211,6 +215,9 @@ describe('import run', () => {
     const { result } = await sync();
     expect(result).toEqual({ outcome: 'failed', error: 'Unerwarteter Fehler beim Import' });
     expect(JSON.stringify(await db.syncRun.findMany())).not.toContain(TOKEN);
+    spy.mockRestore();
+    expect(logged.length).toBeGreaterThan(0); // the failure was logged ...
+    expect(logged.join('\n')).not.toContain(TOKEN); // ... without the secret in it
   });
 
   it('skips runs that are not queued', async () => {

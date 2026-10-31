@@ -34,7 +34,8 @@ Voraussetzungen: Node.js 22, pnpm, Docker.
 
 ```bash
 docker compose -f deploy/docker-compose.dev.yml up -d   # PostgreSQL + Keycloak
-cp deploy/.env.example .env && cp .env apps/api/.env && cp .env apps/web/.env && cp .env apps/worker/.env
+cp deploy/.env.example .env
+for d in apps/api apps/web apps/worker packages/db; do cp .env $d/.env; done
 pnpm install
 pnpm --filter @tessera/db migrate && pnpm --filter @tessera/db seed
 pnpm dev   # web, api und worker
@@ -57,3 +58,28 @@ pnpm test:e2e                              # Playwright; Stack und `pnpm dev` (i
 ```
 
 Nach jeder API-Änderung: `pnpm openapi:generate && pnpm api-types:generate` und beides einchecken.
+
+## Betrieb (Container)
+
+Drei Images, gebaut aus dem Repository-Wurzelverzeichnis (die Konfiguration steht in
+[deploy/.env.example](deploy/.env.example) und kommt zur Laufzeit aus der Umgebung):
+
+```bash
+docker build -f deploy/Dockerfile.api -t tessera-api .
+docker build -f deploy/Dockerfile.worker -t tessera-worker .
+docker build -f deploy/Dockerfile.web -t tessera-web --build-arg NEXT_PUBLIC_API_URL=https://tessera.example.org/api/v1 .
+```
+
+`NEXT_PUBLIC_API_URL` wird in das Browser-Bündel einkompiliert und ist deshalb ein Build-Argument.
+Datenbank-Migrationen laufen mit dem Worker-Image, vor dem Start einer neuen Version:
+
+```bash
+docker run --rm --env-file .env tessera-worker \
+  node_modules/.bin/prisma migrate deploy --schema node_modules/@tessera/db/prisma/schema.prisma
+```
+
+Hinter einem Reverse Proxy müssen Web (3000) und API (3001) unter den Adressen erreichbar sein, die in
+`AUTH_URL`, `NEXT_PUBLIC_API_URL` und `WEB_ORIGIN` stehen. **Stand der Prüfung:** Die Dockerfiles wurden
+in einer Umgebung ohne Docker geschrieben. Geprüft ist, was sie ausführen: `pnpm deploy`-Baum für API und
+Worker (Server startet, Datenbankabfrage über den generierten Client, `prisma migrate deploy`, Worker
+meldet „ready“) und das Standalone-Bündel des Webs. Der eigentliche `docker build` ist noch nicht gelaufen.

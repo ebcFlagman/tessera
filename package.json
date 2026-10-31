@@ -13,7 +13,7 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
-    "test:contract": "vitest run --project api --dir apps/api/tests/contract",
+    "test:contract": "vitest run --project api tests/contract",
     "test:e2e": "pnpm --filter @tessera/web test:e2e",
     "openapi:generate": "pnpm --filter @tessera/api openapi:generate",
     "api-types:generate": "pnpm --filter @tessera/api-types generate",

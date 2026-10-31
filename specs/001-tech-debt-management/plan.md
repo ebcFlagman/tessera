@@ -34,7 +34,7 @@ Technischer Ansatz (Details in [research.md](research.md)): pnpm-Monorepo mit zw
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Prüfung gegen Constitution v1.1.0 (2026-10-31):
+Prüfung gegen Constitution v1.1.0 (2026-10-31); das Ergebnis für den fertigen Stand mit Belegen steht in [docs/architecture/vision.md](../../docs/architecture/vision.md#constitution-check-stand-2026-10-31-version-110):
 
 | Prinzip | Ergebnis | Anmerkung |
 |---------|----------|-----------|

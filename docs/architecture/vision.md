@@ -95,6 +95,30 @@ Alle Entscheidungen: [ADR-Index](adr/README.md). Qualitätsziele: [quality-goals
 Die Aufgabenliste mit dem genauen Fortschritt steht in
 [tasks.md](../../specs/001-tech-debt-management/tasks.md).
 
+## Constitution-Check (Stand 2026-10-31, Version 1.1.0)
+
+Geprüft gegen den fertigen Stand der ersten Version. „Beleg“ nennt, was die Aussage trägt; wo etwas nur
+von Menschen prüfbar ist, steht das dabei.
+
+| Prinzip                          | Ergebnis                   | Beleg                                                                                                                                                                                                                                                                                       |
+| -------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I Fachlogik zuerst               | erfüllt                    | `architecture.test.ts`: die Domäne importiert nichts mit Datenbank, HTTP oder Umgebung; Next.js-Routendateien enthalten nur Delegation. Bewertung, Statusregeln, Abgleich und Kennzahlen sind reine Funktionen mit Tests                                                                    |
+| II Erweiterbar an den Rändern    | erfüllt, mit Einschränkung | Connectoren importieren weder Datenbank noch Prisma (Architekturtest), beide Quellen laufen hinter derselben Schnittstelle. Eine neue Quelle braucht zusätzlich einen Eintrag in der Typenliste (Datenbank-Enum und API-Schema); das steht im [Integrationskonzept](integration-concept.md) |
+| III Nachvollziehbarkeit          | erfüllt                    | `audit.test.ts` führt jede Änderung an Rollen, Integrationen, Bewertungsmodell, Teams, Produkten und Schulden aus; Protokoll und Bewertungen sind per Datenbank-Trigger nur anfügend (`append-only.test.ts`)                                                                                |
+| IV Geheimnisse                   | erfüllt                    | `secrets.test.ts` und die Worker-Tests: kein Klartext in Antworten, Logs, Audit oder Zeilen, auch wenn Fehlermeldungen Geheimnisse enthielten. Der Schlüssel in `deploy/.env.example` ist ein Entwicklungswert und für Produktion zu ersetzen                                               |
+| V Manuell schlägt automatisch    | erfüllt                    | `reconcile.test.ts` und `sync.test.ts`: manuelle Felder bleiben, Konflikte werden gemeldet, „Quelle getilgt“ gewinnt auch über „akzeptiert“                                                                                                                                                 |
+| VI Einfach vor clever            | erfüllt                    | eine Datenbank für Daten, Queue und Audit; die beiden Abweichungen (zwei Next.js-Apps, Worker) sind im Plan begründet                                                                                                                                                                       |
+| VII Backend ist der Vertrag      | erfüllt                    | `pnpm check:generated` in der CI, ESLint-Regel und Architekturtest gegen handgeschriebene API-Aufrufe im Frontend                                                                                                                                                                           |
+| Technik- und Sicherheitsvorgaben | erfüllt                    | Leistungsziele sind gemessen (QZ-1, QZ-2); Lesen für alle, Schreiben pro Produktrolle (`authorize.test.ts`, E2E)                                                                                                                                                                            |
+| Workflow und Quality Gates       | erfüllt                    | 13 ADRs, Migrationen für jede Datenbankänderung, Tests für Fachlogik und Endpunkte, E2E für die Hauptabläufe, Pull-Request-Vorlage mit dieser Checkliste                                                                                                                                    |
+
+**Offene Punkte (kein Verstoß, aber nicht belegt):**
+
+- Die Anbindung an die **echten** Dienste SonarCloud und GitLab Cloud ist nicht getestet (nur Fixtures und lokale Attrappen).
+- Die **Container-Images** sind nicht gebaut; geprüft sind nur ihre Layouts ([ADR 0013](adr/0013-container-images.md)).
+- Der **Lesetest** der Architekturvision (SC-008) braucht eine projektfremde Person.
+- Das **dunkle Thema** fehlt in der Anwendung; die Diagrammfarben dafür sind vorbereitet.
+
 ## Weiterführende Dokumente
 
 - Anforderungen: [spec.md](../../specs/001-tech-debt-management/spec.md)

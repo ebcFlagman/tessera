@@ -11,11 +11,14 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
+    "@prisma/client": "^6.19.3",
     "@tessera/connectors": "workspace:^",
     "@tessera/db": "workspace:*",
     "@tessera/domain": "workspace:*",
     "jose": "^5.10.0",
     "next": "^15.5.28",
+    "pg-boss": "^10.4.2",
+    "prisma": "^6.19.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^3.25.76"

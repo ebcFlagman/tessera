@@ -9,21 +9,21 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate deploy",
     "migrate:dev": "prisma migrate dev",
-    "seed": "tsx prisma/seed.ts",
+    "seed": "tsx --env-file=.env prisma/seed.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "pg-boss": "^10.4.2",
-    "@tessera/domain": "workspace:*"
+    "@tessera/domain": "workspace:*",
+    "prisma": "^6.19.3"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
-    "prisma": "^6.19.3",
     "tsx": "^4.20.5"
   }
 }

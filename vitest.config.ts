@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     projects: [
       { test: { name: 'domain', root: 'packages/domain', include: ['tests/**/*.test.ts'] } },
+      { test: { name: 'architecture', root: '.', include: ['tests/architecture/**/*.test.ts'] } },
       {
         test: {
           name: 'api',

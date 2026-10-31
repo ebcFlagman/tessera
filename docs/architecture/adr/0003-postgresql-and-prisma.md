@@ -26,6 +26,7 @@ Bewährt, Transaktionen und Constraints schützen die Konsistenz, JSONB deckt Ro
 - Datenbankänderungen laufen ausschließlich über Migrationen.
 - Suche nutzt vorerst einfache Teilstring-Suche; ein Volltextindex ist bei Bedarf nachrüstbar.
 - Eine in SQL generierte Spalte ist für Prisma eine normale Spalte und darf nie geschrieben werden.
+- Das Änderungsprotokoll (`audit_entry`) ist per Trigger nur anfügend, Bewertungen (`assessment`) sind per Trigger unveränderlich: Auch Code mit Datenbankzugriff kann sie nicht umschreiben.
 
 ## Referenzen
 

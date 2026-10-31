@@ -19,6 +19,7 @@ Eine abgelöste Entscheidung bleibt bestehen und verweist auf ihre Nachfolgerin.
 | 0010 | [Tägliche Kennzahlen-Snapshots für den Zeitverlauf](0010-daily-metric-snapshots.md) | Akzeptiert | geplant (US4) |
 | 0011 | [Teststrategie: echte Datenbank, Vertragstests, E2E](0011-test-strategy.md) | Akzeptiert | umgesetzt |
 | 0012 | [Architekturdokumentation im Repository](0012-architecture-documentation-in-repo.md) | Akzeptiert | umgesetzt |
+| 0013 | [Container-Images aus dem Monorepo](0013-container-images.md) | Akzeptiert | teilweise (Layouts geprüft, `docker build` steht aus) |
 
 ## Offene Themen (noch keine Entscheidung)
 

@@ -1,0 +1,15 @@
+.git
+.claude
+.specify
+.idea
+specs
+docs
+**/node_modules
+**/.next
+**/test-results
+**/playwright-report
+.deploy-test
+.env
+.env.*
+**/.env
+**/.env.*

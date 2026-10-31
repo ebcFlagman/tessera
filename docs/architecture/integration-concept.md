@@ -104,7 +104,9 @@ Anforderung. Importe laufen im Worker und blockieren keine Benutzeranfragen.
 1. Paket `packages/connectors/src/<quelle>/` anlegen und die Schnittstelle implementieren.
 2. Konfigurationsschema (Zod) für die quellspezifischen Einstellungen definieren.
 3. Fixture-Tests mit aufgezeichneten Antworten ergänzen (Pagination, 429, ungültige Zugangsdaten).
-4. Connector registrieren. **Keine Änderung** am Schuldenmodell oder an anderen Connectoren.
+4. Connector registrieren (`packages/connectors/src/index.ts`) und den Typ in der Typenliste ergänzen:
+   Datenbank-Enum `IntegrationType` (Migration) und `connectorTypes`/`IntegrationTypeSchema` im Backend.
+   **Keine Änderung** am Schuldenmodell, am Abgleich oder an anderen Connectoren.
 5. Quelle in [vision.md](vision.md) und [context-and-building-blocks.md](context-and-building-blocks.md) ergänzen.
 
 ## Offene Punkte

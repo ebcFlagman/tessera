@@ -226,12 +226,12 @@ description: "Aufgabenliste für Tessera – Plattform für Architektur- und Tec
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T108 [P] Container-Dateien für web, api, worker in `deploy/Dockerfile.web`, `deploy/Dockerfile.api`, `deploy/Dockerfile.worker`
-- [ ] T109 [P] Barrierefreiheit und Fehler-/Leerzustände aller Hauptansichten prüfen und beheben in `apps/web/src/`
-- [ ] T110 [P] Import-Lasttest mit 1.000 Befunden < 10 min (SC-003) in `apps/worker/tests/performance/import-load.test.ts`
-- [ ] T111 [P] Sicherheitsprüfung: Suche nach Klartext-Zugangsdaten in Logs, Antworten und Audit in `apps/api/tests/security/secrets.test.ts`
-- [ ] T112 Quickstart-Szenarien 1–6 vollständig durchlaufen und `specs/001-tech-debt-management/quickstart.md` bei Abweichungen korrigieren
-- [ ] T113 Constitution-Check gegen den fertigen Stand durchführen und Ergebnis in `docs/architecture/vision.md` vermerken
+- [x] T108 [P] Container-Dateien für web, api, worker in `deploy/Dockerfile.web`, `deploy/Dockerfile.api`, `deploy/Dockerfile.worker`
+- [x] T109 [P] Barrierefreiheit und Fehler-/Leerzustände aller Hauptansichten prüfen und beheben in `apps/web/src/`
+- [x] T110 [P] Import-Lasttest mit 1.000 Befunden < 10 min (SC-003) in `apps/worker/tests/performance/import-load.test.ts`
+- [x] T111 [P] Sicherheitsprüfung: Suche nach Klartext-Zugangsdaten in Logs, Antworten und Audit in `apps/api/tests/security/secrets.test.ts`
+- [x] T112 Quickstart-Szenarien 1–6 vollständig durchlaufen und `specs/001-tech-debt-management/quickstart.md` bei Abweichungen korrigieren
+- [x] T113 Constitution-Check gegen den fertigen Stand durchführen und Ergebnis in `docs/architecture/vision.md` vermerken
 
 ---
 
