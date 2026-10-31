@@ -27,5 +27,6 @@ pnpm dev                                                  # web, api, worker
 ```bash
 pnpm test            # Unit + Integration (Testcontainers)
 pnpm test:contract   # Backend gegen erzeugte OpenAPI-Spezifikation
-pnpm test:e2e        # Playwright, P1-Flows
+pnpm --filter @tessera/web exec playwright install chromium   # einmalig
+pnpm test:e2e        # Playwright, P1-Flows (Stack und `pnpm dev` müssen laufen)
 ```
