@@ -9,6 +9,8 @@ import { DashboardTheme } from '@/components/dashboard/theme';
 import { kindLabels, statusLabels } from '@/components/debt/labels';
 import { ExportButton } from '@/components/export/ExportButton';
 import { ErrorState, Loading } from '@/components/shell/states';
+import { FormField } from '@/components/ui/FormField';
+import { SelectField } from '@/components/ui/SelectField';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 const RANGES = { '30': '30 Tage', '90': '90 Tage', '180': '180 Tage', '365': '1 Jahr' } as const;
@@ -51,11 +53,11 @@ export default function DashboardPage() {
 
   const m = data.data?.current;
   return (
-    <section className="viz-root" style={{ padding: 16, borderRadius: 8 }}>
+    <section className="viz-root">
       <DashboardTheme />
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <h1 style={{ margin: 0 }}>Dashboard</h1>
-        <span style={{ marginLeft: 'auto' }}>
+        <span className="row" style={{ marginLeft: 'auto' }}>
           <ExportButton kind="dashboard" query={query} label="Kennzahlen als CSV" />{' '}
           <ExportButton
             kind="debts"
@@ -68,47 +70,54 @@ export default function DashboardPage() {
       <form
         role="search"
         onSubmit={(e) => e.preventDefault()}
-        style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '12px 0 16px' }}
+        className="toolbar"
+        style={{ margin: '12px 0 16px' }}
       >
-        <label>
-          Produkt{' '}
-          <select value={productId} onChange={(e) => setProductId(e.target.value)}>
-            <option value="">alle</option>
-            {products.data?.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Team{' '}
-          <select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
-            <option value="">alle</option>
-            {teams.data?.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Zeitraum{' '}
-          <select value={range} onChange={(e) => setRange(e.target.value as Range)}>
-            {Object.entries(RANGES).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FormField id="dash-product" label="Produkt">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={productId}
+              options={[
+                { value: '', label: 'alle' },
+                ...(products.data ?? []).map((p) => ({ value: p.id, label: p.name })),
+              ]}
+              placeholder="alle"
+              onChange={setProductId}
+            />
+          )}
+        </FormField>
+        <FormField id="dash-team" label="Team">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={teamId}
+              options={[
+                { value: '', label: 'alle' },
+                ...(teams.data ?? []).map((t) => ({ value: t.id, label: t.name })),
+              ]}
+              placeholder="alle"
+              onChange={setTeamId}
+            />
+          )}
+        </FormField>
+        <FormField id="dash-range" label="Zeitraum">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={range}
+              options={Object.entries(RANGES).map(([value, label]) => ({ value, label }))}
+              onChange={(v) => setRange(v as Range)}
+            />
+          )}
+        </FormField>
       </form>
 
       {data.isLoading && <Loading />}
       {data.error && <ErrorState message={data.error.message} />}
       {data.data && m && (
         <>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+          <div className="tile-grid" style={{ marginBottom: 16 }}>
             <StatTile label="Schulden gesamt" value={fmt(m.total)} hint="ohne archivierte" />
             <StatTile
               label="Davon offen"

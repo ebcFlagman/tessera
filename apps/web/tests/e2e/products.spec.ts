@@ -27,14 +27,13 @@ test('ein Administrator legt ein Produkt an, sieht es und archiviert es wieder',
   page,
 }) => {
   const name = `E2E Produkt ${Date.now()}`;
-  page.on('dialog', (d) => d.accept());
   await login(page, 'admin');
   await page.goto('/settings/products');
   await expect(page.getByRole('heading', { name: 'Produkte' })).toBeVisible();
 
   // validation first
   await page.getByRole('button', { name: 'Anlegen' }).click();
-  await expect(page.locator('p[role="alert"]')).toContainText('einen Namen');
+  await expect(page.locator('[role="alert"]', { hasText: 'einen Namen' }).first()).toBeVisible();
 
   await page.getByLabel('Name', { exact: true }).fill(name);
   await page.getByLabel('Beschreibung (optional)').fill('Von einem Test angelegt');
@@ -46,11 +45,15 @@ test('ein Administrator legt ein Produkt an, sieht es und archiviert es wieder',
   // the same name twice is refused with an explanation
   await page.getByLabel('Name', { exact: true }).fill(name);
   await page.getByRole('button', { name: 'Anlegen' }).click();
-  await expect(page.locator('p[role="alert"]')).toContainText('existiert bereits');
+  await expect(
+    page.locator('[role="alert"]', { hasText: 'existiert bereits' }).first(),
+  ).toBeVisible();
 
   // it is selectable where debts are recorded
   await page.goto('/debt/new');
-  await expect(page.getByLabel('Produkt').locator('option', { hasText: name })).toHaveCount(1);
+  await page.getByRole('combobox', { name: 'Produkt' }).click();
+  await expect(page.getByRole('option', { name })).toHaveCount(1);
+  await page.keyboard.press('Escape');
 
   // archiving takes it out of the lists again (nothing is deleted)
   await page.goto('/settings/products');
@@ -59,6 +62,7 @@ test('ein Administrator legt ein Produkt an, sieht es und archiviert es wieder',
     .filter({ hasText: name })
     .getByRole('button', { name: 'Archivieren' })
     .click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Archivieren' }).click();
   await expect(page.getByTestId('product-row').filter({ hasText: name })).toHaveCount(0);
   await page.getByLabel('Archivierte anzeigen').check();
   await expect(page.getByTestId('product-row').filter({ hasText: name })).toContainText(
@@ -71,5 +75,7 @@ test('ein Benutzer ohne Rolle kann kein weiteres Produkt anlegen', async ({ page
   await page.goto('/settings/products');
   await page.getByLabel('Name', { exact: true }).fill(`E2E Verboten ${Date.now()}`);
   await page.getByRole('button', { name: 'Anlegen' }).click();
-  await expect(page.locator('p[role="alert"]')).toContainText('Nur Administratoren');
+  await expect(
+    page.locator('[role="alert"]', { hasText: 'Nur Administratoren' }).first(),
+  ).toBeVisible();
 });

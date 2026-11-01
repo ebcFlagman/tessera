@@ -19,6 +19,7 @@ export default defineConfig({
           hookTimeout: 120000,
         },
       },
+      { test: { name: 'web', root: 'apps/web', include: ['src/**/*.test.ts'] } },
       {
         test: { name: 'connectors', root: 'packages/connectors', include: ['tests/**/*.test.ts'] },
       },

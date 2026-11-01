@@ -1,7 +1,14 @@
 'use client';
 
+import { Button } from '@primereact/ui/button';
+import { InputText } from '@primereact/ui/inputtext';
+import { Message } from '@primereact/ui/message';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { FormField } from '@/components/ui/FormField';
+import { notify } from '@/components/ui/Notifier';
+import { SelectField } from '@/components/ui/SelectField';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 import type { SourceInfo } from './SourceBadge';
 
@@ -16,17 +23,22 @@ const fieldLabels: Record<string, string> = {
 export function ConflictNotice({ source }: { source: SourceInfo | null }) {
   if (!source || source.conflicts.length === 0) return null;
   return (
-    <div role="note" style={{ border: '1px solid #b36b00', padding: 8, margin: '8px 0' }}>
-      <strong>Die Quelle weicht von manuell geänderten Feldern ab.</strong> Deine Werte bleiben
-      erhalten:
-      <ul>
-        {source.conflicts.map((c) => (
-          <li key={c.field}>
-            {fieldLabels[c.field] ?? c.field}: Quelle sagt „{String(c.sourceValue ?? '')}“
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Message.Root severity="warn" role="note">
+      <Message.Content>
+        <Message.Icon />
+        <Message.Text>
+          <strong>Die Quelle weicht von manuell geänderten Feldern ab.</strong> Deine Werte bleiben
+          erhalten:
+          <span style={{ display: 'block' }}>
+            {source.conflicts.map((c) => (
+              <span key={c.field} style={{ display: 'block' }}>
+                {fieldLabels[c.field] ?? c.field}: Quelle sagt „{String(c.sourceValue ?? '')}“
+              </span>
+            ))}
+          </span>
+        </Message.Text>
+      </Message.Content>
+    </Message.Root>
   );
 }
 
@@ -38,6 +50,8 @@ export function MergeDuplicates({ debtId, productId }: { debtId: string; product
   const [duplicateId, setDuplicateId] = useState('');
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [merging, setMerging] = useState(false);
 
   // searched on the server: a register can hold far more debts than a list could show
   const term = search.trim();
@@ -58,16 +72,60 @@ export function MergeDuplicates({ debtId, productId }: { debtId: string; product
   return (
     <section aria-labelledby="merge-heading">
       <h2 id="merge-heading">Duplikat zusammenführen</h2>
-      <p style={{ color: '#555' }}>
+      <p className="page-empty">
         Verlauf und Quellenverweise des Duplikats gehen auf diese Schuld über, das Duplikat wird
         archiviert.
       </p>
       <form
-        onSubmit={async (e) => {
+        onSubmit={(e) => {
           e.preventDefault();
           setError(null);
-          if (!duplicateId) return;
-          if (!window.confirm('Duplikat wirklich in diese Schuld zusammenführen?')) return;
+          if (duplicateId) setConfirming(true);
+        }}
+        className="toolbar"
+      >
+        <FormField id="merge-search" label="Duplikat suchen">
+          {({ id }) => (
+            <InputText
+              id={id}
+              value={search}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+            />
+          )}
+        </FormField>
+        <FormField id="merge-duplicate" label="Duplikat">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={duplicateId}
+              options={options.map((d) => ({ value: d.id, label: d.title }))}
+              placeholder="– wählen –"
+              onChange={setDuplicateId}
+            />
+          )}
+        </FormField>
+        <div className="form-field">
+          <Button type="submit" disabled={!duplicateId}>
+            Zusammenführen
+          </Button>
+        </div>
+      </form>
+      {error && (
+        <Message.Root severity="error" role="alert">
+          <Message.Content>
+            <Message.Text>{error}</Message.Text>
+          </Message.Content>
+        </Message.Root>
+      )}
+      <ConfirmDialog
+        open={confirming}
+        busy={merging}
+        title="Duplikat zusammenführen?"
+        confirmLabel="Zusammenführen"
+        danger
+        onCancel={() => setConfirming(false)}
+        onConfirm={async () => {
+          setMerging(true);
           try {
             unwrap(
               await api.POST('/debts/{id}/merge', {
@@ -76,41 +134,23 @@ export function MergeDuplicates({ debtId, productId }: { debtId: string; product
               }),
             );
             setDuplicateId('');
+            setConfirming(false);
             await Promise.all([
               qc.invalidateQueries({ queryKey: ['debt', debtId] }),
               qc.invalidateQueries({ queryKey: ['debts'] }),
               qc.invalidateQueries({ queryKey: ['merge-candidates', productId] }),
             ]);
+            notify.success('Duplikat zusammengeführt');
           } catch (err) {
+            setConfirming(false);
             setError(err instanceof Error ? err.message : 'Zusammenführen fehlgeschlagen');
+          } finally {
+            setMerging(false);
           }
         }}
-        style={{ display: 'flex', gap: 8, alignItems: 'end' }}
       >
-        <label>
-          Duplikat suchen
-          <input value={search} onChange={(e) => setSearch(e.target.value)} />
-        </label>
-        <label>
-          Duplikat
-          <select value={duplicateId} onChange={(e) => setDuplicateId(e.target.value)}>
-            <option value="">– wählen –</option>
-            {options.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" disabled={!duplicateId}>
-          Zusammenführen
-        </button>
-      </form>
-      {error && (
-        <p role="alert" style={{ color: '#b00020' }}>
-          {error}
-        </p>
-      )}
+        Das Duplikat wird archiviert; diese Aktion lässt sich nicht von hier aus rückgängig machen.
+      </ConfirmDialog>
     </section>
   );
 }

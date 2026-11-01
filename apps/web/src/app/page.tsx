@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { SignInCard } from '@/components/ui/SignInCard';
 import { auth, signIn } from '@/lib/auth';
 
 export default async function Home() {
@@ -7,20 +8,14 @@ export default async function Home() {
   // it would loop with the app layout, which sends such sessions back here.
   if (session && !session.error) redirect('/register');
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: 32 }}>
-      <h1>Tessera</h1>
-      <p>Architektur- und technische Schulden erfassen und bewerten.</p>
-      {session?.error && (
-        <p role="alert">Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.</p>
-      )}
-      <form
+    <main style={{ maxWidth: 520, margin: '4rem auto', padding: '0 1rem' }}>
+      <SignInCard
+        expired={Boolean(session?.error)}
         action={async () => {
           'use server';
           await signIn('keycloak', { redirectTo: '/register' });
         }}
-      >
-        <button type="submit">Anmelden</button>
-      </form>
+      />
     </main>
   );
 }

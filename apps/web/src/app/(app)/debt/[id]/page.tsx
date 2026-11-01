@@ -9,6 +9,8 @@ import { describeEvent } from '@/components/debt/events';
 import { MergeDuplicates, ConflictNotice } from '@/components/debt/MergeDuplicates';
 import { SourceBadge } from '@/components/debt/SourceBadge';
 import { ErrorState, Loading } from '@/components/shell/states';
+import { DataGrid } from '@/components/ui/DataGrid';
+import { notify } from '@/components/ui/Notifier';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 export default function DebtDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -42,8 +44,8 @@ export default function DebtDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   return (
-    <section>
-      <h1>{d.title}</h1>
+    <section className="stack">
+      <h1 style={{ margin: 0 }}>{d.title}</h1>
       <DebtForm
         key={d.updatedAt}
         initial={initial}
@@ -68,6 +70,7 @@ export default function DebtDetailPage({ params }: { params: Promise<{ id: strin
           );
           await qc.invalidateQueries({ queryKey: ['debt', id] });
           await qc.invalidateQueries({ queryKey: ['debts'] });
+          notify.success('Änderungen gespeichert');
         }}
       />
       <h2>Herkunft</h2>
@@ -77,13 +80,17 @@ export default function DebtDetailPage({ params }: { params: Promise<{ id: strin
       <AssessmentPanel debtId={id} />
       <MergeDuplicates debtId={id} productId={d.productId} />
       <h2>Verlauf</h2>
-      <ul>
-        {d.events.map((e) => (
-          <li key={e.id}>
-            {new Date(e.at).toLocaleString('de-CH')} – {e.actorName ?? 'System'}: {describeEvent(e)}
-          </li>
-        ))}
-      </ul>
+      <DataGrid
+        caption="Verlauf"
+        data={d.events}
+        rowKey={(e) => e.id}
+        empty="Noch keine Einträge."
+        columns={[
+          { key: 'at', header: 'Zeitpunkt', cell: (e) => new Date(e.at).toLocaleString('de-CH') },
+          { key: 'who', header: 'Urheber', cell: (e) => e.actorName ?? 'System' },
+          { key: 'what', header: 'Änderung', cell: (e) => describeEvent(e) },
+        ]}
+      />
     </section>
   );
 }

@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { DebtForm, emptyDebt } from '@/components/debt/DebtForm';
+import { notify } from '@/components/ui/Notifier';
 import { unwrap, useApi } from '@/lib/api';
 
 export default function NewDebtPage() {
@@ -10,7 +11,7 @@ export default function NewDebtPage() {
   const router = useRouter();
   const qc = useQueryClient();
   return (
-    <section>
+    <section className="stack">
       <h1>Schuld erfassen</h1>
       <DebtForm
         initial={emptyDebt}
@@ -32,6 +33,7 @@ export default function NewDebtPage() {
             }),
           );
           await qc.invalidateQueries({ queryKey: ['debts'] });
+          notify.success('Schuld angelegt');
           router.push(`/debt/${created.id}`);
         }}
       />

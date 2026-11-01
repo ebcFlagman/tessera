@@ -3,8 +3,12 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState } from 'react';
-import { kindLabels, statusLabels } from '@/components/debt/labels';
+import { kindLabels, kindLooks, statusLooks } from '@/components/debt/labels';
 import { Empty, ErrorState, Loading } from '@/components/shell/states';
+import { DataGrid } from '@/components/ui/DataGrid';
+import { FormField } from '@/components/ui/FormField';
+import { SelectField } from '@/components/ui/SelectField';
+import { StatusTag } from '@/components/ui/StatusTag';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 export default function PrioritiesPage() {
@@ -29,68 +33,77 @@ export default function PrioritiesPage() {
   });
 
   return (
-    <section>
-      <h1>Priorisierte Tilgungsliste</h1>
-      <label>
-        Produkt{' '}
-        <select value={productId} onChange={(e) => setProductId(e.target.value)}>
-          <option value="">alle</option>
-          {products.data?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
+    <section className="stack">
+      <h1 style={{ margin: 0 }}>Priorisierte Tilgungsliste</h1>
+      <div className="toolbar">
+        <FormField id="p-product" label="Produkt">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={productId}
+              options={[
+                { value: '', label: 'alle' },
+                ...(products.data ?? []).map((p) => ({ value: p.id, label: p.name })),
+              ]}
+              placeholder="alle"
+              onChange={setProductId}
+            />
+          )}
+        </FormField>
+      </div>
 
       {list.isLoading && <Loading />}
       {list.error && <ErrorState message={list.error.message} />}
       {list.data && (
         <>
-          <h2>Bewertet</h2>
+          <h2 style={{ margin: 0 }}>Bewertet</h2>
           {list.data.ranked.length === 0 ? (
             <Empty>Noch keine bewerteten Schulden. Bewerte Schulden auf ihrer Detailseite.</Empty>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left' }}>
-                  <th>#</th>
-                  <th>Titel</th>
-                  <th>Art</th>
-                  <th>Status</th>
-                  <th>Priorität</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.data.ranked.map((d) => (
-                  <tr key={d.id} style={{ borderTop: '1px solid #ddd' }}>
-                    <td>{d.rank}</td>
-                    <td>
-                      <Link href={`/debt/${d.id}`}>{d.title}</Link>
-                    </td>
-                    <td>{kindLabels[d.kind]}</td>
-                    <td>{statusLabels[d.status]}</td>
-                    <td>
-                      {d.priorityEffective}
-                      {d.priorityOverride !== null ? ' (überschrieben)' : ''}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataGrid
+              caption="Bewertete Schulden"
+              data={list.data.ranked}
+              rowKey={(d) => d.id}
+              columns={[
+                { key: 'rank', header: '#', cell: (d) => d.rank },
+                {
+                  key: 'title',
+                  header: 'Titel',
+                  cell: (d) => <Link href={`/debt/${d.id}`}>{d.title}</Link>,
+                },
+                { key: 'kind', header: 'Art', cell: (d) => <StatusTag look={kindLooks[d.kind]} /> },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  cell: (d) => <StatusTag look={statusLooks[d.status]} />,
+                },
+                {
+                  key: 'priority',
+                  header: 'Priorität',
+                  cell: (d) =>
+                    `${d.priorityEffective}${d.priorityOverride !== null ? ' (überschrieben)' : ''}`,
+                },
+              ]}
+            />
           )}
 
-          <h2>Nicht bewertet ({list.data.unassessedTotal})</h2>
+          <h2 style={{ margin: 0 }}>Nicht bewertet ({list.data.unassessedTotal})</h2>
           {list.data.unassessed.length === 0 ? (
             <Empty>Alle offenen Schulden sind bewertet.</Empty>
           ) : (
-            <ul>
-              {list.data.unassessed.map((d) => (
-                <li key={d.id}>
-                  <Link href={`/debt/${d.id}`}>{d.title}</Link> – {kindLabels[d.kind]}
-                </li>
-              ))}
-            </ul>
+            <DataGrid
+              caption="Nicht bewertete Schulden"
+              data={list.data.unassessed}
+              rowKey={(d) => d.id}
+              columns={[
+                {
+                  key: 'title',
+                  header: 'Titel',
+                  cell: (d) => <Link href={`/debt/${d.id}`}>{d.title}</Link>,
+                },
+                { key: 'kind', header: 'Art', cell: (d) => kindLabels[d.kind] },
+              ]}
+            />
           )}
         </>
       )}

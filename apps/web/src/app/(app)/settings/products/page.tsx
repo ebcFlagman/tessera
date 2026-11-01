@@ -1,10 +1,18 @@
 'use client';
 
+import { Button } from '@primereact/ui/button';
+import { InputText } from '@primereact/ui/inputtext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState } from 'react';
 import { NoProductNotice } from '@/components/shell/NoProductNotice';
 import { ErrorState, Loading } from '@/components/shell/states';
+import { CheckboxField } from '@/components/ui/CheckboxField';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { DataGrid } from '@/components/ui/DataGrid';
+import { FormField } from '@/components/ui/FormField';
+import { notify } from '@/components/ui/Notifier';
+import { InlineError } from '@/components/ui/PageStates';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 export default function ProductsPage() {
@@ -14,8 +22,10 @@ export default function ProductsPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
   const [created, setCreated] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [toArchive, setToArchive] = useState<{ id: string; name: string } | null>(null);
 
   const products = useQuery({
     queryKey: ['products', { showArchived }],
@@ -36,12 +46,23 @@ export default function ProductsPage() {
       setError(err instanceof Error ? err.message : 'Aktion fehlgeschlagen');
     }
   };
+  const setArchived = (id: string, archived: boolean) =>
+    guard(async () => {
+      unwrap(
+        await api.PATCH('/products/{id}', {
+          params: { path: { id } },
+          body: { archived },
+        }),
+      );
+      await refresh();
+      notify.success(archived ? 'Produkt archiviert' : 'Produkt wiederhergestellt');
+    });
 
   const none = products.isSuccess && products.data.length === 0 && !showArchived;
   return (
-    <section>
-      <h1>Produkte</h1>
-      <p style={{ color: '#555' }}>
+    <section className="stack">
+      <h1 style={{ margin: 0 }}>Produkte</h1>
+      <p className="page-empty" style={{ margin: 0 }}>
         Ein Produkt ist das, wofür Schulden erfasst werden (eine Anwendung, ein Service). Wer das
         erste Produkt anlegt, wird dessen Administrator; weitere Produkte legen Administratoren an.
       </p>
@@ -51,69 +72,46 @@ export default function ProductsPage() {
       {none && <NoProductNotice />}
 
       {products.data && products.data.length > 0 && (
-        <table style={{ borderCollapse: 'collapse', margin: '12px 0' }}>
-          <thead>
-            <tr style={{ textAlign: 'left' }}>
-              <th>Name</th>
-              <th>Beschreibung</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {products.data.map((p) => (
-              <tr key={p.id} style={{ borderTop: '1px solid #ddd' }} data-testid="product-row">
-                <td style={{ paddingRight: 16 }}>
-                  {p.name}
-                  {p.archivedAt ? ' (archiviert)' : ''}
-                </td>
-                <td style={{ paddingRight: 16 }}>{p.description ?? '–'}</td>
-                <td style={{ display: 'flex', gap: 8 }}>
-                  <button
+        <DataGrid
+          caption="Produkte"
+          rowTestId="product-row"
+          data={products.data}
+          rowKey={(p) => p.id}
+          columns={[
+            {
+              key: 'name',
+              header: 'Name',
+              cell: (p) => `${p.name}${p.archivedAt ? ' (archiviert)' : ''}`,
+            },
+            { key: 'description', header: 'Beschreibung', cell: (p) => p.description ?? '–' },
+            {
+              key: 'actions',
+              header: 'Aktionen',
+              cell: (p) => (
+                <span className="row">
+                  <Button
                     type="button"
-                    onClick={() =>
-                      guard(async () => {
-                        const archive = !p.archivedAt;
-                        if (
-                          archive &&
-                          !window.confirm(
-                            `„${p.name}“ archivieren? Die Schulden des Produkts werden mit archiviert, nichts wird gelöscht.`,
-                          )
-                        ) {
-                          return;
-                        }
-                        unwrap(
-                          await api.PATCH('/products/{id}', {
-                            params: { path: { id: p.id } },
-                            body: { archived: archive },
-                          }),
-                        );
-                        await refresh();
-                      })
-                    }
+                    size="small"
+                    variant="outlined"
+                    onClick={() => (p.archivedAt ? void setArchived(p.id, false) : setToArchive(p))}
                   >
                     {p.archivedAt ? 'Wiederherstellen' : 'Archivieren'}
-                  </button>
+                  </Button>
                   {!p.archivedAt && <Link href="/settings/members">Rollen</Link>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </span>
+              ),
+            },
+          ]}
+        />
       )}
-      <label style={{ display: 'block', margin: '8px 0' }}>
-        <input
-          type="checkbox"
-          checked={showArchived}
-          onChange={(e) => setShowArchived(e.target.checked)}
-        />{' '}
-        Archivierte anzeigen
-      </label>
+      <CheckboxField
+        id="show-archived"
+        label="Archivierte anzeigen"
+        checked={showArchived}
+        onChange={setShowArchived}
+      />
 
-      {error && (
-        <p role="alert" style={{ color: '#b00020' }}>
-          {error}
-        </p>
-      )}
+      {error && <InlineError>{error}</InlineError>}
       {created && (
         <p role="status">
           Produkt „{created}“ angelegt. Du bist dessen Administrator.{' '}
@@ -123,13 +121,15 @@ export default function ProductsPage() {
       )}
 
       <form
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
           const trimmed = name.trim();
           if (!trimmed) {
-            setError('Bitte gib dem Produkt einen Namen.');
+            setNameError('Bitte gib dem Produkt einen Namen.');
             return;
           }
+          setNameError(null);
           void guard(async () => {
             const product = unwrap(
               await api.POST('/products', {
@@ -142,20 +142,50 @@ export default function ProductsPage() {
             await refresh();
           });
         }}
-        style={{ display: 'grid', gap: 8, maxWidth: 480 }}
+        style={{ maxWidth: 480 }}
         aria-label={none ? 'Erstes Produkt anlegen' : 'Neues Produkt'}
       >
-        <h2>{none ? 'Erstes Produkt anlegen' : 'Neues Produkt'}</h2>
-        <label>
-          Name
-          <input value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label>
-          Beschreibung (optional)
-          <input value={description} onChange={(e) => setDescription(e.target.value)} />
-        </label>
-        <button type="submit">{none ? 'Erstes Produkt anlegen' : 'Anlegen'}</button>
+        <h2 style={{ marginTop: 0 }}>{none ? 'Erstes Produkt anlegen' : 'Neues Produkt'}</h2>
+        <FormField id="product-name" label="Name" required error={nameError}>
+          {({ id, invalid, describedBy }) => (
+            <InputText
+              id={id}
+              value={name}
+              maxLength={100}
+              invalid={invalid}
+              aria-describedby={describedBy}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+            />
+          )}
+        </FormField>
+        <FormField id="product-description" label="Beschreibung (optional)">
+          {({ id }) => (
+            <InputText
+              id={id}
+              value={description}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
+            />
+          )}
+        </FormField>
+        {/* the access token arrives with the session; until then a request would be sent unauthenticated */}
+        <Button type="submit" disabled={!ready}>
+          {none ? 'Erstes Produkt anlegen' : 'Anlegen'}
+        </Button>
       </form>
+
+      <ConfirmDialog
+        open={toArchive !== null}
+        title={toArchive ? `„${toArchive.name}“ archivieren?` : ''}
+        confirmLabel="Archivieren"
+        onCancel={() => setToArchive(null)}
+        onConfirm={() => {
+          const target = toArchive;
+          setToArchive(null);
+          if (target) void setArchived(target.id, true);
+        }}
+      >
+        Die Schulden des Produkts werden mit archiviert, nichts wird gelöscht.
+      </ConfirmDialog>
     </section>
   );
 }

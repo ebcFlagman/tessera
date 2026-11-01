@@ -1,8 +1,15 @@
 'use client';
 
+import { Button } from '@primereact/ui/button';
+import { Message } from '@primereact/ui/message';
+import { Textarea } from '@primereact/ui/textarea';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ErrorState, Loading } from '@/components/shell/states';
+import { DataGrid } from '@/components/ui/DataGrid';
+import { FormField } from '@/components/ui/FormField';
+import { notify } from '@/components/ui/Notifier';
+import { SelectField } from '@/components/ui/SelectField';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 const SCORES = [1, 2, 3, 4, 5] as const;
@@ -52,6 +59,7 @@ export function AssessmentPanel({ debtId }: { debtId: string }) {
             );
             setScores({});
             setComment('');
+            notify.success('Bewertung gespeichert');
             await Promise.all([
               qc.invalidateQueries({ queryKey: ['assessments', debtId] }),
               qc.invalidateQueries({ queryKey: ['debt', debtId] }),
@@ -63,81 +71,81 @@ export function AssessmentPanel({ debtId }: { debtId: string }) {
             setSaving(false);
           }
         }}
-        style={{ display: 'grid', gap: 8, maxWidth: 560 }}
+        style={{ maxWidth: 560 }}
       >
-        <p style={{ margin: 0, color: '#555' }}>
+        <p className="page-empty" style={{ marginTop: 0 }}>
           Modell Version {model.data.version}. Skala 1 (niedrig) bis 5 (hoch).
         </p>
         {criteria.map((c) => (
-          <label key={c.key}>
-            {c.name} (Gewicht {c.weight}
-            {c.direction === 'down' ? ', höherer Wert senkt die Priorität' : ''})
-            <select
-              aria-label={c.name}
-              value={scores[c.key] ?? ''}
-              onChange={(e) => setScores((s) => ({ ...s, [c.key]: Number(e.target.value) }))}
-            >
-              <option value="">– wählen –</option>
-              {SCORES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
+          <FormField
+            key={c.key}
+            id={`score-${c.key}`}
+            label={`${c.name} (Gewicht ${c.weight}${c.direction === 'down' ? ', höherer Wert senkt die Priorität' : ''})`}
+          >
+            {({ id }) => (
+              <SelectField
+                id={id}
+                value={scores[c.key] === undefined ? '' : String(scores[c.key])}
+                options={SCORES.map((n) => ({ value: String(n), label: String(n) }))}
+                placeholder="– wählen –"
+                onChange={(v) => setScores((s) => ({ ...s, [c.key]: Number(v) }))}
+              />
+            )}
+          </FormField>
         ))}
-        <label>
-          Kommentar
-          <textarea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} />
-        </label>
+        <FormField id="assessment-comment" label="Kommentar">
+          {({ id }) => (
+            <Textarea
+              id={id}
+              rows={2}
+              value={comment}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
+            />
+          )}
+        </FormField>
         {error && (
-          <p role="alert" style={{ color: '#b00020', margin: 0 }}>
-            {error}
-          </p>
+          <Message.Root severity="error" role="alert">
+            <Message.Content>
+              <Message.Text>{error}</Message.Text>
+            </Message.Content>
+          </Message.Root>
         )}
-        <button type="submit" disabled={!complete || saving}>
+        <Button type="submit" disabled={!complete || saving}>
           {saving ? 'Speichert …' : 'Bewertung speichern'}
-        </button>
+        </Button>
       </form>
 
       <h3>Bisherige Bewertungen</h3>
       {history.data.length === 0 ? (
-        <p style={{ color: '#555' }}>Noch nicht bewertet.</p>
+        <p className="page-empty">Noch nicht bewertet.</p>
       ) : (
-        <ol style={{ paddingLeft: 20 }}>
+        <div className="stack">
           {history.data.map((a, i) => (
-            <li key={a.id} style={{ marginBottom: 12 }}>
-              <strong>
-                Priorität {a.priorityCalculated}
-                {i === 0 ? ' (aktuell)' : ''}
-              </strong>{' '}
-              – {new Date(a.assessedAt).toLocaleString('de-CH')}, {a.assessedByName ?? 'unbekannt'},
-              Modell v{a.modelVersion}
-              {a.comment ? ` – „${a.comment}“` : ''}
-              <table style={{ borderCollapse: 'collapse', marginTop: 4 }}>
-                <caption style={{ textAlign: 'left', color: '#555' }}>Herleitung</caption>
-                <thead>
-                  <tr style={{ textAlign: 'left' }}>
-                    <th>Kriterium</th>
-                    <th>Wert</th>
-                    <th>Gewicht</th>
-                    <th>Beitrag</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {a.breakdown.map((b) => (
-                    <tr key={b.key}>
-                      <td style={{ paddingRight: 12 }}>{b.name}</td>
-                      <td>{b.score}</td>
-                      <td>{b.weight}</td>
-                      <td>{b.contribution}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </li>
+            <div key={a.id}>
+              <p style={{ margin: '0 0 4px' }}>
+                <strong>
+                  Priorität {a.priorityCalculated}
+                  {i === 0 ? ' (aktuell)' : ''}
+                </strong>{' '}
+                – {new Date(a.assessedAt).toLocaleString('de-CH')},{' '}
+                {a.assessedByName ?? 'unbekannt'}, Modell v{a.modelVersion}
+                {a.comment ? ` – „${a.comment}“` : ''}
+              </p>
+              <small className="page-empty">Herleitung</small>
+              <DataGrid
+                caption="Herleitung"
+                data={a.breakdown}
+                rowKey={(b) => b.key}
+                columns={[
+                  { key: 'name', header: 'Kriterium', cell: (b) => b.name },
+                  { key: 'score', header: 'Wert', cell: (b) => b.score },
+                  { key: 'weight', header: 'Gewicht', cell: (b) => b.weight },
+                  { key: 'contribution', header: 'Beitrag', cell: (b) => b.contribution },
+                ]}
+              />
+            </div>
           ))}
-        </ol>
+        </div>
       )}
     </section>
   );
