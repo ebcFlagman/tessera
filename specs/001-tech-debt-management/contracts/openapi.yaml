@@ -1,0 +1,109 @@
+# ENTWURF zur Orientierung. Maßgeblich ist die aus dem Backend-Code erzeugte OpenAPI-Spezifikation (Constitution VII).
+openapi: 3.1.0
+info:
+  title: Tessera API
+  version: 0.1.0
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+paths:
+  /products:
+    get: { summary: Produkte auflisten, responses: { '200': { description: OK } } }
+    post: { summary: Produkt anlegen (Admin), responses: { '201': { description: Erstellt } } }
+  /users:
+    get: { summary: Benutzer suchen (Auswahl Verantwortlicher), responses: { '200': { description: OK } } }
+  /teams:
+    get: { summary: Teams auflisten, responses: { '200': { description: OK } } }
+    post: { summary: Team anlegen (Admin), responses: { '201': { description: Erstellt } } }
+  /debts/{id}/merge:
+    post: { summary: Duplikat zusammenführen, responses: { '200': { description: OK } } }
+  /debts:
+    get:
+      summary: Schuldenregister (Suche, Filter, Sortierung, Paginierung)
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: kind, in: query, schema: { $ref: '#/components/schemas/Kind' } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/Status' } }
+        - { name: productId, in: query, schema: { type: string } }
+        - { name: ownerId, in: query, schema: { type: string } }
+        - { name: source, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, example: '-priority' } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses: { '200': { description: OK } }
+    post:
+      summary: Schuld anlegen (Bearbeiter des Produkts)
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/DebtInput' } } }
+      responses: { '201': { description: Erstellt }, '403': { description: Keine Berechtigung } }
+  /debts/{id}:
+    get: { summary: Schuld mit Verlauf, responses: { '200': { description: OK }, '404': { description: Nicht gefunden } } }
+    patch: { summary: Schuld ändern (inkl. Status; accepted erfordert Begründung), responses: { '200': { description: OK }, '422': { description: Validierungsfehler } } }
+  /debts/{id}/assessments:
+    get: { summary: Bewertungshistorie, responses: { '200': { description: OK } } }
+    post: { summary: Neue Bewertung anlegen, responses: { '201': { description: Erstellt } } }
+  /debts/{id}/priority-override:
+    put: { summary: Priorität mit Begründung überschreiben, responses: { '200': { description: OK } } }
+    delete: { summary: Überschreibung entfernen, responses: { '204': { description: OK } } }
+  /priority-list:
+    get: { summary: Priorisierte Tilgungsliste (Filter productId, teamId), responses: { '200': { description: OK } } }
+  /assessment-model:
+    get: { summary: Aktives Bewertungsmodell, responses: { '200': { description: OK } } }
+    put: { summary: Neue Modellversion (Admin), responses: { '200': { description: OK } } }
+  /products/{id}/integrations:
+    get: { summary: Integrationen (ohne Geheimnisse), responses: { '200': { description: OK } } }
+    post: { summary: Integration anlegen (Admin), responses: { '201': { description: Erstellt } } }
+  /integrations/{id}:
+    patch: { summary: Konfiguration/Zeitplan/Zugangsdaten ändern (Admin), responses: { '200': { description: OK } } }
+    delete: { summary: Integration trennen (Admin), responses: { '204': { description: OK } } }
+  /integrations/{id}/test:
+    post: { summary: Verbindung testen, responses: { '200': { description: Ergebnis } } }
+  /integrations/{id}/sync:
+    post: { summary: Import anstoßen, responses: { '202': { description: Angenommen, liefert SyncRun-ID } } }
+  /sync-runs/{id}:
+    get: { summary: Importstatus und Fortschritt, responses: { '200': { description: OK } } }
+  /dashboard:
+    get:
+      summary: Kennzahlen und Zeitverlauf
+      parameters:
+        - { name: productId, in: query, schema: { type: string } }
+        - { name: teamId, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: OK } }
+  /exports/debts:
+    get:
+      summary: Export (CSV)
+      responses: { '200': { description: Datei, content: { text/csv: {} } } }
+  /products/{id}/members:
+    get: { summary: Rollen anzeigen, responses: { '200': { description: OK } } }
+    put: { summary: Rollen setzen (Admin), responses: { '200': { description: OK } } }
+  /audit-log:
+    get: { summary: Änderungsprotokoll (Admin), responses: { '200': { description: OK } } }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    Kind: { type: string, enum: [architectural, technical] }
+    Status: { type: string, enum: [open, planned, in_progress, repaid, accepted] }
+    DebtInput:
+      type: object
+      required: [productId, title, kind]
+      properties:
+        productId: { type: string }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        kind: { $ref: '#/components/schemas/Kind' }
+        ownerId: { type: string }
+        effortEstimate: { type: number, minimum: 0 }
+        interestEstimate: { type: number, minimum: 0 }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object }
+x-conventions:
+  errors: "Alle Fehler im Schema Error; Geheimnisse erscheinen nie in Antworten."
+  authz: "Lesen: jeder angemeldete Benutzer. Schreiben: editor/admin des Produkts. Integrationen, Modell, Rollen, Audit: admin."

@@ -1,0 +1,316 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  editor
+}
+
+enum DebtKind {
+  architectural
+  technical
+}
+
+enum DebtStatus {
+  open
+  planned
+  in_progress
+  repaid
+  accepted
+}
+
+enum IntegrationType {
+  sonarcloud
+  gitlab
+}
+
+enum IntegrationStatus {
+  ok
+  error
+  disabled
+}
+
+enum SyncState {
+  queued
+  running
+  succeeded
+  failed
+}
+
+model Product {
+  id           String           @id @default(cuid())
+  name         String           @unique
+  description  String?
+  archivedAt   DateTime?        @map("archived_at")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  memberships  Membership[]
+  debts        DebtItem[]
+  integrations Integration[]
+  snapshots    MetricSnapshot[]
+
+  @@map("product")
+}
+
+/// Mirror of the OIDC identity; `subject` is the Keycloak `sub` claim.
+model User {
+  assessments Assessment[]
+  models      AssessmentModel[]
+  id          String            @id @default(cuid())
+  subject     String            @unique
+  name        String
+  email       String?
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  memberships Membership[]
+  teams       TeamMember[]
+  ownedDebts  DebtItem[]        @relation("DebtOwner")
+
+  @@map("app_user")
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  members   TeamMember[]
+  debts     DebtItem[]
+
+  @@map("team")
+}
+
+model TeamMember {
+  teamId String @map("team_id")
+  userId String @map("user_id")
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@map("team_member")
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("membership")
+}
+
+/// Append-only. Details must never contain secrets.
+model AuditEntry {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  details    Json     @default("{}")
+  at         DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([at])
+  @@map("audit_entry")
+}
+
+model DebtItem {
+  id                     String     @id @default(cuid())
+  productId              String     @map("product_id")
+  title                  String     @db.VarChar(200)
+  description            String?
+  kind                   DebtKind
+  status                 DebtStatus @default(open)
+  ownerId                String?    @map("owner_id")
+  teamId                 String?    @map("team_id")
+  /// person-days
+  effortEstimate         Float?     @map("effort_estimate")
+  /// person-days per month
+  interestEstimate       Float?     @map("interest_estimate")
+  acceptedReason         String?    @map("accepted_reason")
+  reviewDate             DateTime?  @map("review_date")
+  archivedAt             DateTime?  @map("archived_at")
+  /// 0–100 from the latest assessment under the active model; null = not assessed
+  priorityCalculated     Float?     @map("priority_calculated")
+  /// manual override (needs a reason)
+  priorityOverride       Float?     @map("priority_override")
+  priorityOverrideReason String?    @map("priority_override_reason")
+  /// generated in SQL: COALESCE(priority_override, priority_calculated); never written by the app
+  priorityEffective      Float?     @map("priority_effective")
+  /// field name -> "source" | "manual" (import must not overwrite manual fields)
+  fieldOrigin            Json       @default("{}") @map("field_origin")
+  createdAt              DateTime   @default(now()) @map("created_at")
+  updatedAt              DateTime   @updatedAt @map("updated_at")
+
+  product     Product      @relation(fields: [productId], references: [id])
+  owner       User?        @relation("DebtOwner", fields: [ownerId], references: [id])
+  team        Team?        @relation(fields: [teamId], references: [id])
+  events      DebtEvent[]
+  assessments Assessment[]
+  findings    Finding[]
+
+  @@index([priorityCalculated])
+  @@index([priorityOverride])
+  @@index([priorityEffective])
+  @@index([productId, status])
+  @@index([kind])
+  @@index([ownerId])
+  @@map("debt_item")
+}
+
+/// History of a debt item: who changed what and when. actorId is null for imports.
+model DebtEvent {
+  id      String   @id @default(cuid())
+  debtId  String   @map("debt_id")
+  actorId String?  @map("actor_id")
+  type    String
+  changes Json     @default("{}")
+  at      DateTime @default(now())
+
+  debt DebtItem @relation(fields: [debtId], references: [id], onDelete: Cascade)
+
+  @@index([debtId, at])
+  @@map("debt_event")
+}
+
+/// Versioned scoring model. Exactly one row is active (partial unique index in the migration).
+model AssessmentModel {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  /// [{ key, name, weight, direction }]
+  criteria  Json
+  active    Boolean  @default(false)
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  author      User?        @relation(fields: [createdBy], references: [id])
+  assessments Assessment[]
+
+  @@map("assessment_model")
+}
+
+/// Immutable record of one assessment (history, FR-005).
+model Assessment {
+  id                 String   @id @default(cuid())
+  debtId             String   @map("debt_id")
+  modelId            String   @map("model_id")
+  /// criterion key -> 1..5
+  scores             Json
+  priorityCalculated Float    @map("priority_calculated")
+  comment            String?
+  assessedBy         String?  @map("assessed_by")
+  assessedAt         DateTime @default(now()) @map("assessed_at")
+
+  debt     DebtItem        @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  model    AssessmentModel @relation(fields: [modelId], references: [id])
+  assessor User?           @relation(fields: [assessedBy], references: [id])
+
+  @@index([debtId, assessedAt])
+  @@map("assessment")
+}
+
+/// Connection of a product to an external source. Credentials are encrypted (AES-256-GCM).
+model Integration {
+  id                   String            @id @default(cuid())
+  productId            String            @map("product_id")
+  type                 IntegrationType
+  name                 String
+  /// source specific settings, validated by the connector (never contains secrets)
+  config               Json              @default("{}")
+  credentialsEncrypted String            @map("credentials_encrypted")
+  /// minutes between automatic imports
+  scheduleMinutes      Int               @default(60) @map("schedule_minutes")
+  status               IntegrationStatus @default(ok)
+  lastAttemptAt        DateTime?         @map("last_attempt_at")
+  lastSyncAt           DateTime?         @map("last_sync_at")
+  lastError            String?           @map("last_error")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  product  Product   @relation(fields: [productId], references: [id])
+  syncRuns SyncRun[]
+  findings Finding[]
+
+  @@index([productId])
+  @@map("integration")
+}
+
+model SyncRun {
+  id            String    @id @default(cuid())
+  integrationId String    @map("integration_id")
+  state         SyncState @default(queued)
+  /// "manual" | "schedule"
+  trigger       String
+  requestedBy   String?   @map("requested_by")
+  startedAt     DateTime? @map("started_at")
+  finishedAt    DateTime? @map("finished_at")
+  /// { created, updated, repaid, reopened, unchanged, total }
+  counts        Json      @default("{}")
+  error         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId, createdAt])
+  @@map("sync_run")
+}
+
+/// One finding of a source system, linked to the debt it feeds. Several findings may feed one debt.
+model Finding {
+  id            String    @id @default(cuid())
+  integrationId String    @map("integration_id")
+  externalId    String    @map("external_id")
+  debtId        String    @map("debt_id")
+  fingerprint   String
+  /// url of the finding in the source system
+  url           String?
+  raw           Json
+  /// source values that differ from manually maintained fields: [{ field, sourceValue }]
+  conflicts     Json      @default("[]")
+  firstSeenAt   DateTime  @default(now()) @map("first_seen_at")
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at")
+  goneAt        DateTime? @map("gone_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  debt        DebtItem    @relation(fields: [debtId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, externalId])
+  @@index([debtId])
+  @@map("finding")
+}
+
+/// Daily figures per (product, team) partition; the dashboard sums partitions for its filters.
+/// A team of null stands for debts without a team. Unique per day and partition (index in the migration).
+model MetricSnapshot {
+  id                  String   @id @default(cuid())
+  date                DateTime @db.Date
+  productId           String   @map("product_id")
+  teamId              String?  @map("team_id")
+  total               Int
+  openCount           Int      @map("open_count")
+  /// person-days of debts still to repay
+  openEffort          Float    @map("open_effort")
+  openInterest        Float    @map("open_interest")
+  unestimatedOpen     Int      @map("unestimated_open")
+  countByStatus       Json     @map("count_by_status")
+  countByKind         Json     @map("count_by_kind")
+  countByPriorityBand Json     @map("count_by_priority_band")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@index([productId, date])
+  @@map("metric_snapshot")
+}

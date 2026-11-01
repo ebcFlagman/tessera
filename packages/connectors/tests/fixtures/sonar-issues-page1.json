@@ -1,0 +1,37 @@
+{
+  "paging": { "pageIndex": 1, "pageSize": 500, "total": 3 },
+  "issues": [
+    {
+      "key": "AX1",
+      "rule": "java:S3776",
+      "severity": "CRITICAL",
+      "message": "Cognitive Complexity von 31 reduzieren",
+      "component": "demo:src/Order.java",
+      "line": 42,
+      "type": "CODE_SMELL",
+      "effort": "1h30min",
+      "tags": ["brain-overload"]
+    },
+    {
+      "key": "AX2",
+      "rule": "java:S1192",
+      "severity": "MINOR",
+      "message": "String-Literal mehrfach verwendet",
+      "component": "demo:src/Util.java",
+      "line": 7,
+      "type": "CODE_SMELL",
+      "debt": "30min",
+      "tags": []
+    },
+    {
+      "key": "AX3",
+      "rule": "architecture:cycle",
+      "severity": "MAJOR",
+      "message": "Zyklische Abhängigkeit zwischen Modulen",
+      "component": "demo:src/core",
+      "type": "CODE_SMELL",
+      "effort": "2d",
+      "tags": ["architecture"]
+    }
+  ]
+}

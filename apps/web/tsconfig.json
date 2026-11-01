@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": ["node", "react", "react-dom"],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "incremental": true,
+    "allowJs": true
+  },
+  "include": ["next-env.d.ts", "src", "tests", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

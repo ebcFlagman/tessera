@@ -34,3 +34,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# monorepo
+node_modules/
+dist/
+.turbo/
+coverage/
+test-results/
+playwright-report/
+
+# build output of the apps
+.next/
