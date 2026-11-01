@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { login } from './helpers';
+import { login, pick } from './helpers';
 import { MockSonar } from './mock-sonar';
 
 /**
@@ -13,7 +13,7 @@ const WRONG_TOKEN = 'wrong-token-9876';
 async function connect(page: Page, name: string, projectKey: string, token: string) {
   await page.goto('/integrations');
   await expect(page.getByRole('heading', { name: 'Integrationen' })).toBeVisible();
-  await page.getByLabel('Produkt', { exact: true }).selectOption({ label: 'Plattform' });
+  await pick(page, 'Produkt', 'Plattform', true);
   const form = page.getByRole('form', { name: 'Neue Integration' });
   await form.getByLabel('Name', { exact: true }).fill(name);
   await form.getByLabel('Projektschlüssel').fill(projectKey);
@@ -36,7 +36,6 @@ test('Quelle anbinden, importieren, wiederholen ohne Duplikate und Behebung übe
     { key: `B${run}`, message: `E2E ${run}: Klasse zu komplex` },
   ];
   await mock.start(PORT);
-  page.on('dialog', (d) => d.accept());
   const name = `E2E Sonar ${run}`;
 
   try {
@@ -53,7 +52,7 @@ test('Quelle anbinden, importieren, wiederholen ohne Duplikate und Behebung übe
     });
 
     await page.goto('/register');
-    await page.getByLabel('Quelle').selectOption('sonarcloud');
+    await pick(page, 'Quelle', 'SonarCloud');
     await page.getByLabel('Suche').fill(`E2E ${run}`);
     const rows = page.locator('tbody tr', { hasText: `E2E ${run}` });
     await expect(rows).toHaveCount(2);
@@ -62,7 +61,7 @@ test('Quelle anbinden, importieren, wiederholen ohne Duplikate und Behebung übe
     // a second import must not create duplicates
     const before = mock.requests;
     await page.goto('/integrations');
-    await page.getByLabel('Produkt', { exact: true }).selectOption({ label: 'Plattform' });
+    await pick(page, 'Produkt', 'Plattform', true);
     const card2 = page.getByTestId('integration').filter({ hasText: name });
     await card2.getByRole('button', { name: 'Import starten' }).click();
     await expect.poll(() => mock.requests, { timeout: 30_000 }).toBeGreaterThan(before);
@@ -70,14 +69,14 @@ test('Quelle anbinden, importieren, wiederholen ohne Duplikate und Behebung übe
       timeout: 30_000,
     });
     await page.goto('/register');
-    await page.getByLabel('Quelle').selectOption('sonarcloud');
+    await pick(page, 'Quelle', 'SonarCloud');
     await page.getByLabel('Suche').fill(`E2E ${run}`);
     await expect(page.locator('tbody tr', { hasText: `E2E ${run}` })).toHaveCount(2);
 
     // one issue is resolved in the source: the debt is repaid by the next import
     mock.issues = mock.issues.slice(1);
     await page.goto('/integrations');
-    await page.getByLabel('Produkt', { exact: true }).selectOption({ label: 'Plattform' });
+    await pick(page, 'Produkt', 'Plattform', true);
     await page
       .getByTestId('integration')
       .filter({ hasText: name })
@@ -85,7 +84,7 @@ test('Quelle anbinden, importieren, wiederholen ohne Duplikate und Behebung übe
       .click();
     await expect(async () => {
       await page.goto('/register');
-      await page.getByLabel(/^Status/).selectOption('repaid');
+      await pick(page, /^Status/, 'Getilgt');
       await page.getByLabel('Suche').fill(`E2E ${run}`);
       await expect(page.locator('tbody tr', { hasText: 'Methode zu lang' })).toBeVisible({
         timeout: 3000,
@@ -109,11 +108,12 @@ test('Quelle anbinden, importieren, wiederholen ohne Duplikate und Behebung übe
   } finally {
     // disconnect both again so the test can be repeated
     await page.goto('/integrations');
-    await page.getByLabel('Produkt', { exact: true }).selectOption({ label: 'Plattform' });
+    await pick(page, 'Produkt', 'Plattform', true);
     const cards = page.getByTestId('integration').filter({ hasText: `E2E Sonar ${run}` });
     while ((await cards.count()) > 0) {
       const before = await cards.count();
       await cards.first().getByRole('button', { name: 'Trennen' }).click();
+      await page.getByRole('dialog').getByRole('button', { name: 'Trennen' }).click();
       await expect(cards).toHaveCount(before - 1);
     }
     await mock.stop();

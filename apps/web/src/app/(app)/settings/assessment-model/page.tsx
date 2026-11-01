@@ -1,8 +1,14 @@
 'use client';
 
+import { Button } from '@primereact/ui/button';
+import { InputText } from '@primereact/ui/inputtext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { ErrorState, Loading } from '@/components/shell/states';
+import { DataGrid } from '@/components/ui/DataGrid';
+import { notify } from '@/components/ui/Notifier';
+import { InlineError } from '@/components/ui/PageStates';
+import { SelectField } from '@/components/ui/SelectField';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 interface Row {
@@ -46,9 +52,9 @@ export default function AssessmentModelPage() {
     setRows((r) => r.map((row, idx) => (idx === i ? { ...row, ...patch } : row)));
 
   return (
-    <section>
-      <h1>Bewertungsmodell</h1>
-      <p>
+    <section className="stack">
+      <h1 style={{ margin: 0 }}>Bewertungsmodell</h1>
+      <p style={{ margin: 0 }}>
         Aktuelle Version {model.data.version}. Änderungen erzeugen eine neue Version und berechnen
         alle Prioritäten neu. Nur Administratoren dürfen speichern.
       </p>
@@ -69,6 +75,7 @@ export default function AssessmentModelPage() {
           }
           try {
             const r = unwrap(await api.PUT('/assessment-model', { body: { criteria } }));
+            notify.success('Neue Version gespeichert');
             setMessage(
               `Version ${r.model.version} gespeichert: ${r.updated} Prioritäten neu berechnet, ${r.needReassessment} Schulden müssen neu bewertet werden.`,
             );
@@ -81,80 +88,98 @@ export default function AssessmentModelPage() {
           }
         }}
       >
-        <table style={{ borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left' }}>
-              <th>Schlüssel</th>
-              <th>Name</th>
-              <th>Gewicht</th>
-              <th>Wirkung</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={i}>
-                <td>
-                  <input
-                    aria-label={`Schlüssel ${i + 1}`}
-                    value={r.key}
-                    onChange={(e) => update(i, { key: e.target.value })}
-                  />
-                </td>
-                <td>
-                  <input
-                    aria-label={`Name ${i + 1}`}
-                    value={r.name}
-                    onChange={(e) => update(i, { name: e.target.value })}
-                  />
-                </td>
-                <td>
-                  <input
-                    aria-label={`Gewicht ${i + 1}`}
-                    inputMode="decimal"
-                    size={4}
-                    value={r.weight}
-                    onChange={(e) => update(i, { weight: e.target.value })}
-                  />
-                </td>
-                <td>
-                  <select
-                    aria-label={`Wirkung ${i + 1}`}
-                    value={r.direction}
-                    onChange={(e) => update(i, { direction: e.target.value as 'up' | 'down' })}
-                  >
-                    <option value="up">höher = dringender</option>
-                    <option value="down">höher = weniger dringend</option>
-                  </select>
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    onClick={() => setRows((all) => all.filter((_, idx) => idx !== i))}
-                  >
-                    Entfernen
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ display: 'flex', gap: 8, margin: '12px 0' }}>
-          <button
+        <DataGrid
+          caption="Bewertungskriterien"
+          data={rows}
+          rowKey={(r) => String(rows.indexOf(r))}
+          empty="Keine Kriterien."
+          columns={[
+            {
+              key: 'key',
+              header: 'Schlüssel',
+              cell: (r) => (
+                <InputText
+                  aria-label={`Schlüssel ${rows.indexOf(r) + 1}`}
+                  value={r.key}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    update(rows.indexOf(r), { key: e.target.value })
+                  }
+                />
+              ),
+            },
+            {
+              key: 'name',
+              header: 'Name',
+              cell: (r) => (
+                <InputText
+                  aria-label={`Name ${rows.indexOf(r) + 1}`}
+                  value={r.name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    update(rows.indexOf(r), { name: e.target.value })
+                  }
+                />
+              ),
+            },
+            {
+              key: 'weight',
+              header: 'Gewicht',
+              cell: (r) => (
+                <InputText
+                  aria-label={`Gewicht ${rows.indexOf(r) + 1}`}
+                  inputMode="decimal"
+                  style={{ width: '5rem' }}
+                  value={r.weight}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    update(rows.indexOf(r), { weight: e.target.value })
+                  }
+                />
+              ),
+            },
+            {
+              key: 'direction',
+              header: 'Wirkung',
+              cell: (r) => (
+                <SelectField
+                  id={`direction-${rows.indexOf(r)}`}
+                  ariaLabel={`Wirkung ${rows.indexOf(r) + 1}`}
+                  value={r.direction}
+                  options={[
+                    { value: 'up', label: 'höher = dringender' },
+                    { value: 'down', label: 'höher = weniger dringend' },
+                  ]}
+                  onChange={(v) => update(rows.indexOf(r), { direction: v as 'up' | 'down' })}
+                />
+              ),
+            },
+            {
+              key: 'remove',
+              header: 'Aktion',
+              cell: (r) => (
+                <Button
+                  type="button"
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setRows((all) => all.filter((x) => x !== r))}
+                >
+                  Entfernen
+                </Button>
+              ),
+            },
+          ]}
+        />
+        <div className="row" style={{ margin: '12px 0' }}>
+          <Button
             type="button"
+            variant="outlined"
             onClick={() =>
               setRows((all) => [...all, { key: '', name: '', weight: '1', direction: 'up' }])
             }
           >
             Kriterium hinzufügen
-          </button>
-          <button type="submit">Neue Version speichern</button>
+          </Button>
+          <Button type="submit">Neue Version speichern</Button>
         </div>
-        {error && (
-          <p role="alert" style={{ color: '#b00020' }}>
-            {error}
-          </p>
-        )}
+        {error && <InlineError>{error}</InlineError>}
         {message && <p role="status">{message}</p>}
       </form>
     </section>

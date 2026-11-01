@@ -20,6 +20,7 @@ Eine abgelöste Entscheidung bleibt bestehen und verweist auf ihre Nachfolgerin.
 | 0011 | [Teststrategie: echte Datenbank, Vertragstests, E2E](0011-test-strategy.md) | Akzeptiert | umgesetzt |
 | 0012 | [Architekturdokumentation im Repository](0012-architecture-documentation-in-repo.md) | Akzeptiert | umgesetzt |
 | 0013 | [Container-Images aus dem Monorepo](0013-container-images.md) | Akzeptiert | teilweise (Layouts geprüft, `docker build` steht aus) |
+| 0014 | [Oberfläche mit PrimeReact 11](0014-primereact-11-ui.md) | Akzeptiert | umgesetzt |
 
 ## Offene Themen (noch keine Entscheidung)
 

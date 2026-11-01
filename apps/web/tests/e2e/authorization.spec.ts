@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login } from './helpers';
+import { login, pick } from './helpers';
 
 /** Seeded users: admin (admin of both products), editor (editor of Plattform), norole (no role). */
 test('ohne Rolle lesen, aber nicht ändern; ein Administrator vergibt die Rolle, das Protokoll hält es fest', async ({
@@ -24,43 +24,47 @@ test('ohne Rolle lesen, aber nicht ändern; ein Administrator vergibt die Rolle,
 
     // writing is refused with an explanation
     await user.goto('/debt/new');
-    await user.getByLabel('Produkt').selectOption({ label: 'Plattform' });
+    await pick(user, 'Produkt', 'Plattform');
     await user.getByLabel('Titel').fill(title);
     await user.getByRole('button', { name: 'Anlegen' }).click();
-    await expect(user.locator('p[role="alert"], ul[role="alert"]').first()).toContainText(
+    await expect(user.locator('[role="alert"]').first()).toContainText(
       'Dafür fehlt die Berechtigung',
     );
 
     // neither roles nor the change log are open to them
     await user.goto('/settings/audit');
-    await expect(user.locator('p[role="alert"]')).toContainText('Nur Administratoren');
+    await expect(
+      user.locator('[role="alert"]', { hasText: 'Nur Administratoren' }).first(),
+    ).toBeVisible();
     await user.goto('/settings/members');
     const addForm = user.getByRole('form', { name: 'Mitglied hinzufügen' });
     await expect(addForm).toBeVisible();
-    await addForm.getByLabel('Benutzer').selectOption({ label: 'Nora Ohnerolle' });
+    await pick(addForm, 'Benutzer', 'Nora Ohnerolle');
     await addForm.getByRole('button', { name: 'Hinzufügen' }).click();
-    await expect(user.locator('p[role="alert"]')).toContainText('Dafür fehlt die Berechtigung');
+    await expect(
+      user.locator('[role="alert"]', { hasText: 'Dafür fehlt die Berechtigung' }).first(),
+    ).toBeVisible();
 
     // an administrator grants the role
     await admin.goto('/settings/members');
-    await admin.getByLabel('Produkt', { exact: true }).selectOption({ label: 'Plattform' });
+    await pick(admin, 'Produkt', 'Plattform', true);
     const adminForm = admin.getByRole('form', { name: 'Mitglied hinzufügen' });
-    await adminForm.getByLabel('Benutzer').selectOption({ label: 'Nora Ohnerolle' });
+    await pick(adminForm, 'Benutzer', 'Nora Ohnerolle');
     await adminForm.getByRole('button', { name: 'Hinzufügen' }).click();
-    await expect(admin.getByRole('combobox', { name: 'Rolle von Nora Ohnerolle' })).toHaveValue(
-      'editor',
+    await expect(admin.getByRole('combobox', { name: 'Rolle von Nora Ohnerolle' })).toContainText(
+      'Bearbeiter',
     );
 
     // now the same action works
     await user.goto('/debt/new');
-    await user.getByLabel('Produkt').selectOption({ label: 'Plattform' });
+    await pick(user, 'Produkt', 'Plattform');
     await user.getByLabel('Titel').fill(title);
     await user.getByRole('button', { name: 'Anlegen' }).click();
     await expect(user.getByRole('heading', { name: title })).toBeVisible();
 
     // the change log shows who changed which role, when
     await admin.goto('/settings/audit');
-    await admin.getByLabel(/^Aktion/).selectOption({ label: 'Rolle geändert' });
+    await pick(admin, /^Aktion/, 'Rolle geändert');
     const row = admin.locator('tbody tr', { hasText: 'Nora Ohnerolle' }).first();
     await expect(row).toContainText('Ada Admin');
     await expect(row).toContainText('Rolle geändert');
@@ -69,11 +73,12 @@ test('ohne Rolle lesen, aber nicht ändern; ein Administrator vergibt die Rolle,
   } finally {
     // take the role away again so the test can be repeated
     await admin.goto('/settings/members');
-    await admin.getByLabel('Produkt', { exact: true }).selectOption({ label: 'Plattform' });
+    await pick(admin, 'Produkt', 'Plattform', true);
     await admin.locator('tbody tr').first().waitFor(); // the list must be loaded before looking for the role
     const member = admin.locator('tbody tr', { hasText: 'Nora Ohnerolle' });
     if ((await member.count()) > 0) {
       await member.getByRole('button', { name: 'Entfernen' }).click();
+      await admin.getByRole('dialog').getByRole('button', { name: 'Entfernen' }).click();
       await expect(member).toHaveCount(0);
     }
     await adminCtx.close();

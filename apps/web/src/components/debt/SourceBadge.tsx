@@ -1,3 +1,6 @@
+import { StatusTag } from '../ui/StatusTag';
+import { sourceLooks } from './labels';
+
 const typeLabels = { sonarcloud: 'SonarCloud', gitlab: 'GitLab' } as const;
 
 export interface SourceInfo {
@@ -11,7 +14,7 @@ export interface SourceInfo {
   conflicts: { field: string; sourceValue?: unknown }[];
 }
 
-/** Where an imported debt comes from; manual debts show nothing in the compact form. */
+/** Where an imported debt comes from; manual debts show a plain marker in the compact form. */
 export function SourceBadge({
   source,
   detailed = false,
@@ -19,7 +22,13 @@ export function SourceBadge({
   source: SourceInfo | null;
   detailed?: boolean;
 }) {
-  if (!source) return detailed ? <p style={{ color: '#555' }}>Manuell erfasst.</p> : <span>–</span>;
+  if (!source) {
+    return detailed ? (
+      <p className="page-empty">Manuell erfasst.</p>
+    ) : (
+      <StatusTag look={sourceLooks.manual} />
+    );
+  }
   const label = `${typeLabels[source.type]} · ${source.externalId.replace(/^[a-z]+:/, '')}`;
   const link = source.url ? (
     <a href={source.url} target="_blank" rel="noreferrer">
@@ -30,7 +39,8 @@ export function SourceBadge({
   );
   if (!detailed) {
     return (
-      <span>
+      <span className="row">
+        <StatusTag look={sourceLooks[source.type]} />
         {link}
         {source.gone ? ' (in Quelle behoben)' : ''}
         {source.conflicts.length > 0 ? ' ⚠' : ''}

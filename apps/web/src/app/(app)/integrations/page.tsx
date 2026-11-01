@@ -1,8 +1,17 @@
 'use client';
 
+import { Button } from '@primereact/ui/button';
+import { Card } from '@primereact/ui/card';
+import { InputText } from '@primereact/ui/inputtext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Empty, ErrorState, Loading } from '@/components/shell/states';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { FormField } from '@/components/ui/FormField';
+import { notify } from '@/components/ui/Notifier';
+import { InlineError } from '@/components/ui/PageStates';
+import { SelectField } from '@/components/ui/SelectField';
+import { StatusTag } from '@/components/ui/StatusTag';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 type SourceType = 'sonarcloud' | 'gitlab';
@@ -25,6 +34,7 @@ export default function IntegrationsPage() {
   const [productId, setProductId] = useState('');
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [toDisconnect, setToDisconnect] = useState<{ id: string; name: string } | null>(null);
 
   const products = useQuery({
     queryKey: ['products'],
@@ -68,128 +78,152 @@ export default function IntegrationsPage() {
     }
   };
 
+  const statusLooks = {
+    ok: { label: statusLabels.ok, severity: 'success', symbol: '✓' },
+    error: { label: statusLabels.error, severity: 'danger', symbol: '✗' },
+    disabled: { label: statusLabels.disabled, severity: 'secondary', symbol: '⏸' },
+  } as const;
+
   return (
-    <section>
-      <h1>Integrationen</h1>
-      <label>
-        Produkt{' '}
-        <select value={selected} onChange={(e) => setProductId(e.target.value)}>
-          {products.data?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      {error && (
-        <p role="alert" style={{ color: '#b00020' }}>
-          {error}
-        </p>
-      )}
+    <section className="stack">
+      <h1 style={{ margin: 0 }}>Integrationen</h1>
+      <div className="toolbar">
+        <FormField id="int-product" label="Produkt">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={selected}
+              options={(products.data ?? []).map((p) => ({ value: p.id, label: p.name }))}
+              onChange={setProductId}
+            />
+          )}
+        </FormField>
+      </div>
+      {error && <InlineError>{error}</InlineError>}
 
       {integrations.isLoading && <Loading />}
       {integrations.error && <ErrorState message={integrations.error.message} />}
       {integrations.data?.length === 0 && (
         <Empty>Noch keine Quelle verbunden. Lege unten die erste Integration an.</Empty>
       )}
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {integrations.data?.map((i) => (
-          <li
-            key={i.id}
-            style={{ border: '1px solid #ccc', padding: 12, margin: '12px 0' }}
-            data-testid="integration"
-          >
-            <h2 style={{ margin: 0 }}>
-              {i.name} <small>({typeLabels[i.type]})</small>
-            </h2>
-            <p style={{ margin: '4px 0' }}>
-              Status: <strong>{statusLabels[i.status]}</strong> · Intervall {i.scheduleMinutes} min
-              · letzter Abgleich:{' '}
-              {i.lastSyncAt ? new Date(i.lastSyncAt).toLocaleString('de-CH') : 'noch nie'}
-            </p>
-            {i.lastError && (
-              <p role="alert" style={{ color: '#b00020', margin: '4px 0' }}>
-                Letzter Fehler: {i.lastError}
-              </p>
-            )}
-            {i.latestRun && (
-              <p style={{ margin: '4px 0' }} data-testid="latest-run">
-                Letzter Import: {stateLabels[i.latestRun.state]}
-                {i.latestRun.state === 'succeeded' ? ` – ${countsText(i.latestRun.counts)}` : ''}
-                {i.latestRun.state === 'failed' && i.latestRun.error
-                  ? ` – ${i.latestRun.error}`
-                  : ''}
-              </p>
-            )}
-            {messages[i.id] && <p role="status">{messages[i.id]}</p>}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                onClick={() =>
-                  guard(async () => {
-                    const r = unwrap(
-                      await api.POST('/integrations/{id}/test', { params: { path: { id: i.id } } }),
-                    );
-                    note(i.id, `${r.ok ? '✓' : '✗'} ${r.message}`);
-                  })
-                }
-              >
-                Verbindung testen
-              </button>
-              <button
-                disabled={i.status === 'disabled'}
-                onClick={() =>
-                  guard(async () => {
-                    unwrap(
-                      await api.POST('/integrations/{id}/sync', { params: { path: { id: i.id } } }),
-                    );
-                    note(i.id, 'Import eingeplant.');
-                    await refresh();
-                  })
-                }
-              >
-                Import starten
-              </button>
-              <button
-                onClick={() =>
-                  guard(async () => {
-                    unwrap(
-                      await api.PATCH('/integrations/{id}', {
-                        params: { path: { id: i.id } },
-                        body: { disabled: i.status !== 'disabled' },
-                      }),
-                    );
-                    await refresh();
-                  })
-                }
-              >
-                {i.status === 'disabled' ? 'Aktivieren' : 'Deaktivieren'}
-              </button>
-              <button
-                onClick={() =>
-                  guard(async () => {
-                    if (
-                      !window.confirm(`„${i.name}“ trennen? Importierte Schulden bleiben erhalten.`)
-                    )
-                      return;
-                    const res = await api.DELETE('/integrations/{id}', {
-                      params: { path: { id: i.id } },
-                    });
-                    if (res.error)
-                      throw new Error(
-                        (res.error as { message?: string }).message ?? 'Trennen fehlgeschlagen',
-                      );
-                    await refresh();
-                  })
-                }
-              >
-                Trennen
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {integrations.data?.map((i) => (
+        <div key={i.id} data-testid="integration">
+          <Card.Root>
+            <Card.Body>
+              <Card.Title>
+                {i.name} <small>({typeLabels[i.type]})</small>
+              </Card.Title>
+              <Card.Content>
+                <p style={{ margin: '4px 0' }}>
+                  Status: <StatusTag look={statusLooks[i.status]} /> · Intervall {i.scheduleMinutes}{' '}
+                  min · letzter Abgleich:{' '}
+                  {i.lastSyncAt ? new Date(i.lastSyncAt).toLocaleString('de-CH') : 'noch nie'}
+                </p>
+                {i.lastError && <InlineError>Letzter Fehler: {i.lastError}</InlineError>}
+                {i.latestRun && (
+                  <p style={{ margin: '4px 0' }} data-testid="latest-run">
+                    Letzter Import: {stateLabels[i.latestRun.state]}
+                    {i.latestRun.state === 'succeeded'
+                      ? ` – ${countsText(i.latestRun.counts)}`
+                      : ''}
+                    {i.latestRun.state === 'failed' && i.latestRun.error
+                      ? ` – ${i.latestRun.error}`
+                      : ''}
+                  </p>
+                )}
+                {messages[i.id] && <p role="status">{messages[i.id]}</p>}
+              </Card.Content>
+              <Card.Footer>
+                <div className="row">
+                  <Button
+                    variant="outlined"
+                    onClick={() =>
+                      guard(async () => {
+                        const r = unwrap(
+                          await api.POST('/integrations/{id}/test', {
+                            params: { path: { id: i.id } },
+                          }),
+                        );
+                        note(i.id, `${r.ok ? '✓' : '✗'} ${r.message}`);
+                      })
+                    }
+                  >
+                    Verbindung testen
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    disabled={i.status === 'disabled'}
+                    onClick={() =>
+                      guard(async () => {
+                        unwrap(
+                          await api.POST('/integrations/{id}/sync', {
+                            params: { path: { id: i.id } },
+                          }),
+                        );
+                        note(i.id, 'Import eingeplant.');
+                        await refresh();
+                      })
+                    }
+                  >
+                    Import starten
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() =>
+                      guard(async () => {
+                        unwrap(
+                          await api.PATCH('/integrations/{id}', {
+                            params: { path: { id: i.id } },
+                            body: { disabled: i.status !== 'disabled' },
+                          }),
+                        );
+                        await refresh();
+                      })
+                    }
+                  >
+                    {i.status === 'disabled' ? 'Aktivieren' : 'Deaktivieren'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    severity="danger"
+                    onClick={() => setToDisconnect({ id: i.id, name: i.name })}
+                  >
+                    Trennen
+                  </Button>
+                </div>
+              </Card.Footer>
+            </Card.Body>
+          </Card.Root>
+        </div>
+      ))}
 
       {selected && <CreateForm productId={selected} onCreated={refresh} onError={setError} />}
+
+      <ConfirmDialog
+        open={toDisconnect !== null}
+        title={toDisconnect ? `„${toDisconnect.name}“ trennen?` : ''}
+        confirmLabel="Trennen"
+        danger
+        onCancel={() => setToDisconnect(null)}
+        onConfirm={() => {
+          const target = toDisconnect;
+          setToDisconnect(null);
+          if (!target) return;
+          void guard(async () => {
+            const res = await api.DELETE('/integrations/{id}', {
+              params: { path: { id: target.id } },
+            });
+            if (res.error)
+              throw new Error(
+                (res.error as { message?: string }).message ?? 'Trennen fehlgeschlagen',
+              );
+            await refresh();
+            notify.success('Integration getrennt');
+          });
+        }}
+      >
+        Importierte Schulden bleiben erhalten.
+      </ConfirmDialog>
     </section>
   );
 }
@@ -244,60 +278,106 @@ function CreateForm({
           setName('');
           setToken('');
           await onCreated();
+          notify.success('Integration verbunden');
         } catch (err) {
           onError(err instanceof Error ? err.message : 'Anlegen fehlgeschlagen');
         }
       }}
-      style={{ display: 'grid', gap: 8, maxWidth: 480 }}
+      style={{ maxWidth: 480 }}
       aria-label="Neue Integration"
+      noValidate
     >
-      <h2>Neue Integration</h2>
-      <label>
-        Quelle
-        <select value={type} onChange={(e) => setType(e.target.value as SourceType)}>
-          <option value="sonarcloud">SonarCloud</option>
-          <option value="gitlab">GitLab Cloud</option>
-        </select>
-      </label>
-      <label>
-        Name
-        <input value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
+      <h2 style={{ marginTop: 0 }}>Neue Integration</h2>
+      <FormField id="new-type" label="Quelle">
+        {({ id }) => (
+          <SelectField
+            id={id}
+            value={type}
+            options={[
+              { value: 'sonarcloud', label: 'SonarCloud' },
+              { value: 'gitlab', label: 'GitLab Cloud' },
+            ]}
+            onChange={(v) => setType(v as SourceType)}
+          />
+        )}
+      </FormField>
+      <FormField id="new-name" label="Name">
+        {({ id }) => (
+          <InputText
+            id={id}
+            value={name}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+          />
+        )}
+      </FormField>
       {type === 'sonarcloud' ? (
-        <label>
-          Projektschlüssel
-          <input value={projectKey} onChange={(e) => setProjectKey(e.target.value)} />
-        </label>
+        <FormField id="new-project-key" label="Projektschlüssel">
+          {({ id }) => (
+            <InputText
+              id={id}
+              value={projectKey}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProjectKey(e.target.value)}
+            />
+          )}
+        </FormField>
       ) : (
         <>
-          <label>
-            Projekt-ID
-            <input value={gitlabProject} onChange={(e) => setGitlabProject(e.target.value)} />
-          </label>
-          <label>
-            Label für Schulden
-            <input value={label} onChange={(e) => setLabel(e.target.value)} />
-          </label>
+          <FormField id="new-gitlab-project" label="Projekt-ID">
+            {({ id }) => (
+              <InputText
+                id={id}
+                value={gitlabProject}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setGitlabProject(e.target.value)
+                }
+              />
+            )}
+          </FormField>
+          <FormField id="new-label" label="Label für Schulden">
+            {({ id }) => (
+              <InputText
+                id={id}
+                value={label}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLabel(e.target.value)}
+              />
+            )}
+          </FormField>
         </>
       )}
-      <label>
-        Basis-URL (optional, nur für selbst gehostete Installationen)
-        <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} />
-      </label>
-      <label>
-        Zugriffstoken
-        <input
-          type="password"
-          autoComplete="off"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-        />
-      </label>
-      <label>
-        Intervall (Minuten)
-        <input inputMode="numeric" value={schedule} onChange={(e) => setSchedule(e.target.value)} />
-      </label>
-      <button type="submit">Verbinden</button>
+      <FormField
+        id="new-base-url"
+        label="Basis-URL (optional, nur für selbst gehostete Installationen)"
+      >
+        {({ id }) => (
+          <InputText
+            id={id}
+            value={baseUrl}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBaseUrl(e.target.value)}
+          />
+        )}
+      </FormField>
+      <FormField id="new-token" label="Zugriffstoken">
+        {({ id }) => (
+          <InputText
+            id={id}
+            type="password"
+            autoComplete="off"
+            value={token}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setToken(e.target.value)}
+          />
+        )}
+      </FormField>
+      <FormField id="new-schedule" label="Intervall (Minuten)">
+        {({ id }) => (
+          <InputText
+            id={id}
+            inputMode="numeric"
+            value={schedule}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSchedule(e.target.value)}
+          />
+        )}
+      </FormField>
+      <Button type="submit">Verbinden</Button>
     </form>
   );
 }

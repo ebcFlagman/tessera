@@ -78,6 +78,7 @@ Details: [Kontext und Bausteine](context-and-building-blocks.md).
 | Zeitverlauf     | tägliche Snapshots                                           | [0010](adr/0010-daily-metric-snapshots.md)                 |
 | Tests           | Vitest, eingebettete PostgreSQL, Playwright                  | [0011](adr/0011-test-strategy.md)                          |
 | Dokumentation   | im Repository, ADRs im MADR-Stil                             | [0012](adr/0012-architecture-documentation-in-repo.md)     |
+| Oberfläche      | PrimeReact 11 (gestylt, Preset, Hell/Dunkel)                 | [0014](adr/0014-primereact-11-ui.md)                       |
 
 Alle Entscheidungen: [ADR-Index](adr/README.md). Qualitätsziele: [quality-goals.md](quality-goals.md).
 

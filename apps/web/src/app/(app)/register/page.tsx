@@ -1,17 +1,45 @@
 'use client';
 
+import { InputText } from '@primereact/ui/inputtext';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState } from 'react';
-import { kindLabels, statusLabels } from '@/components/debt/labels';
+import { kindLabels, kindLooks, statusLabels, statusLooks } from '@/components/debt/labels';
 import { SourceBadge } from '@/components/debt/SourceBadge';
 import { ExportButton } from '@/components/export/ExportButton';
 import { NoProductNotice } from '@/components/shell/NoProductNotice';
-import { Empty, ErrorState, Loading } from '@/components/shell/states';
+import { type Column, DataGrid } from '@/components/ui/DataGrid';
+import { FormField } from '@/components/ui/FormField';
+import { SelectField } from '@/components/ui/SelectField';
+import { StatusTag } from '@/components/ui/StatusTag';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 type Kind = keyof typeof kindLabels;
 type Status = keyof typeof statusLabels;
+type Sort = '-createdAt' | 'createdAt' | 'title' | 'status' | '-priority';
+
+const ALL = { label: 'alle', value: '' };
+const kindOptions = [
+  ALL,
+  ...Object.entries(kindLabels).map(([value, label]) => ({ value, label })),
+];
+const statusOptions = [
+  ALL,
+  ...Object.entries(statusLabels).map(([value, label]) => ({ value, label })),
+];
+const sourceOptions = [
+  ALL,
+  { label: 'manuell', value: 'manual' },
+  { label: 'SonarCloud', value: 'sonarcloud' },
+  { label: 'GitLab', value: 'gitlab' },
+];
+const sortOptions = [
+  { label: 'Neueste zuerst', value: '-createdAt' },
+  { label: 'Älteste zuerst', value: 'createdAt' },
+  { label: 'Titel', value: 'title' },
+  { label: 'Status', value: 'status' },
+  { label: 'Priorität (hoch zuerst)', value: '-priority' },
+];
 
 export default function RegisterPage() {
   const api = useApi();
@@ -22,9 +50,7 @@ export default function RegisterPage() {
   const [productId, setProductId] = useState('');
   const [teamId, setTeamId] = useState('');
   const [source, setSource] = useState<'' | 'manual' | 'sonarcloud' | 'gitlab'>('');
-  const [sort, setSort] = useState<'-createdAt' | 'createdAt' | 'title' | 'status' | '-priority'>(
-    '-createdAt',
-  );
+  const [sort, setSort] = useState<Sort>('-createdAt');
 
   const teams = useQuery({
     queryKey: ['teams'],
@@ -65,11 +91,25 @@ export default function RegisterPage() {
   const items = debts.data?.pages.flatMap((p) => p.items) ?? [];
   const productName = (id: string) => products.data?.find((p) => p.id === id)?.name ?? id;
 
+  type Item = (typeof items)[number];
+  const columns: Column<Item>[] = [
+    { key: 'title', header: 'Titel', cell: (d) => <Link href={`/debt/${d.id}`}>{d.title}</Link> },
+    { key: 'kind', header: 'Art', cell: (d) => <StatusTag look={kindLooks[d.kind]} /> },
+    { key: 'status', header: 'Status', cell: (d) => <StatusTag look={statusLooks[d.status]} /> },
+    { key: 'product', header: 'Produkt', cell: (d) => productName(d.productId) },
+    {
+      key: 'priority',
+      header: 'Priorität',
+      cell: (d) => d.priorityEffective ?? '–',
+    },
+    { key: 'source', header: 'Quelle', cell: (d) => <SourceBadge source={d.source} /> },
+  ];
+
   return (
-    <section>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <section className="stack">
+      <div className="row">
         <h1 style={{ margin: 0 }}>Schuldenregister</h1>
-        <span style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+        <span className="spacer row" style={{ marginLeft: 'auto' }}>
           <ExportButton
             kind="debts"
             query={{ q, kind, status, productId, teamId, source }}
@@ -81,119 +121,95 @@ export default function RegisterPage() {
 
       {products.isSuccess && products.data.length === 0 && <NoProductNotice />}
 
-      <form
-        role="search"
-        onSubmit={(e) => e.preventDefault()}
-        style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '16px 0' }}
-      >
-        <label>
-          Suche <input value={q} onChange={(e) => setQ(e.target.value)} />
-        </label>
-        <label>
-          Art{' '}
-          <select value={kind} onChange={(e) => setKind(e.target.value as Kind | '')}>
-            <option value="">alle</option>
-            {Object.entries(kindLabels).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Status{' '}
-          <select value={status} onChange={(e) => setStatus(e.target.value as Status | '')}>
-            <option value="">alle</option>
-            {Object.entries(statusLabels).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Produkt{' '}
-          <select value={productId} onChange={(e) => setProductId(e.target.value)}>
-            <option value="">alle</option>
-            {products.data?.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Team{' '}
-          <select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
-            <option value="">alle</option>
-            {teams.data?.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Quelle{' '}
-          <select value={source} onChange={(e) => setSource(e.target.value as typeof source)}>
-            <option value="">alle</option>
-            <option value="manual">manuell</option>
-            <option value="sonarcloud">SonarCloud</option>
-            <option value="gitlab">GitLab</option>
-          </select>
-        </label>
-        <label>
-          Sortierung{' '}
-          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
-            <option value="-createdAt">Neueste zuerst</option>
-            <option value="createdAt">Älteste zuerst</option>
-            <option value="title">Titel</option>
-            <option value="status">Status</option>
-            <option value="-priority">Priorität (hoch zuerst)</option>
-          </select>
-        </label>
+      <form role="search" onSubmit={(e) => e.preventDefault()} className="toolbar">
+        <FormField id="f-q" label="Suche">
+          {({ id }) => (
+            <InputText
+              id={id}
+              value={q}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
+            />
+          )}
+        </FormField>
+        <FormField id="f-kind" label="Art">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={kind}
+              options={kindOptions}
+              placeholder="alle"
+              onChange={(v) => setKind(v as Kind | '')}
+            />
+          )}
+        </FormField>
+        <FormField id="f-status" label="Status">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={status}
+              options={statusOptions}
+              placeholder="alle"
+              onChange={(v) => setStatus(v as Status | '')}
+            />
+          )}
+        </FormField>
+        <FormField id="f-product" label="Produkt">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={productId}
+              options={[ALL, ...(products.data ?? []).map((p) => ({ value: p.id, label: p.name }))]}
+              placeholder="alle"
+              onChange={setProductId}
+            />
+          )}
+        </FormField>
+        <FormField id="f-team" label="Team">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={teamId}
+              options={[ALL, ...(teams.data ?? []).map((t) => ({ value: t.id, label: t.name }))]}
+              placeholder="alle"
+              onChange={setTeamId}
+            />
+          )}
+        </FormField>
+        <FormField id="f-source" label="Quelle">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={source}
+              options={sourceOptions}
+              placeholder="alle"
+              onChange={(v) => setSource(v as typeof source)}
+            />
+          )}
+        </FormField>
+        <FormField id="f-sort" label="Sortierung">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={sort}
+              options={sortOptions}
+              onChange={(v) => setSort(v as Sort)}
+            />
+          )}
+        </FormField>
       </form>
 
-      {debts.isLoading && <Loading />}
-      {debts.error && <ErrorState message={debts.error.message} />}
-      {debts.isSuccess && items.length === 0 && (
-        <Empty>Keine Schulden gefunden. Erfasse die erste Schuld oder passe die Filter an.</Empty>
-      )}
-      {items.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left' }}>
-              <th>Titel</th>
-              <th>Art</th>
-              <th>Status</th>
-              <th>Produkt</th>
-              <th>Priorität</th>
-              <th>Quelle</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((d) => (
-              <tr key={d.id} style={{ borderTop: '1px solid #ddd' }}>
-                <td>
-                  <Link href={`/debt/${d.id}`}>{d.title}</Link>
-                </td>
-                <td>{kindLabels[d.kind]}</td>
-                <td>{statusLabels[d.status]}</td>
-                <td>{productName(d.productId)}</td>
-                <td>{d.priorityEffective ?? '–'}</td>
-                <td>
-                  <SourceBadge source={d.source} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {debts.hasNextPage && (
-        <button onClick={() => debts.fetchNextPage()} disabled={debts.isFetchingNextPage}>
-          Mehr laden
-        </button>
-      )}
+      <DataGrid
+        caption="Schulden"
+        data={items}
+        columns={columns}
+        rowKey={(d) => d.id}
+        loading={debts.isLoading}
+        error={debts.error?.message}
+        empty="Keine Schulden gefunden. Erfasse die erste Schuld oder passe die Filter an."
+        hasMore={Boolean(debts.hasNextPage)}
+        loadingMore={debts.isFetchingNextPage}
+        onLoadMore={() => debts.fetchNextPage()}
+      />
     </section>
   );
 }

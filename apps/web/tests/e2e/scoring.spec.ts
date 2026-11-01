@@ -1,9 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createDebt, login } from './helpers';
+import { createDebt, login, pick, navigate } from './helpers';
 
 async function assess(page: Page, values: Record<string, string>) {
   for (const [criterion, value] of Object.entries(values)) {
-    await page.getByLabel(criterion, { exact: true }).selectOption(value);
+    await pick(page, new RegExp(`^${criterion}`), value);
   }
   await page.getByRole('button', { name: 'Bewertung speichern' }).click();
 }
@@ -25,7 +25,7 @@ test('bewerten, Rangfolge prüfen und Priorität mit Begründung überschreiben'
   await expect(page.getByTestId('priority-calculated')).toHaveText('0');
 
   // ranking: urgent before minor
-  await page.getByRole('link', { name: 'Prioritäten' }).click();
+  await navigate(page, 'Prioritäten');
   const rows = page.locator('tbody tr', { hasText: `E2E ${run}` });
   await expect(rows).toHaveCount(2);
   await expect(rows.nth(0)).toContainText(urgent);
@@ -35,7 +35,7 @@ test('bewerten, Rangfolge prüfen und Priorität mit Begründung überschreiben'
   await rows.nth(1).getByRole('link').click();
   await page.getByLabel('Priorität überschreiben (0–100)').fill('100');
   await page.getByRole('button', { name: 'Überschreiben', exact: true }).click();
-  await expect(page.locator('p[role="alert"]')).toContainText('Begründung');
+  await expect(page.locator('[role="alert"]', { hasText: 'Begründung' }).first()).toBeVisible();
   await page.getByLabel('Begründung', { exact: true }).fill('Vertragsrisiko');
   await page.getByRole('button', { name: 'Überschreiben', exact: true }).click();
   await expect(page.getByTestId('priority-override')).toContainText('100');
@@ -45,5 +45,6 @@ test('bewerten, Rangfolge prüfen und Priorität mit Begründung überschreiben'
 
   // both are now at 100; removing the override restores the calculated value
   await page.getByRole('button', { name: 'Überschreibung entfernen' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Entfernen' }).click();
   await expect(page.getByTestId('priority-effective')).toHaveText('0');
 });

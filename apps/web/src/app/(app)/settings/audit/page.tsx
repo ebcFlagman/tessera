@@ -1,8 +1,11 @@
 'use client';
 
+import { InputText } from '@primereact/ui/inputtext';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Empty, ErrorState, Loading } from '@/components/shell/states';
+import { DataGrid } from '@/components/ui/DataGrid';
+import { FormField } from '@/components/ui/FormField';
+import { SelectField } from '@/components/ui/SelectField';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 const actionLabels: Record<string, string> = {
@@ -61,74 +64,78 @@ export default function AuditPage() {
 
   const items = log.data?.pages.flatMap((p) => p.items) ?? [];
   return (
-    <section>
-      <h1>Änderungsprotokoll</h1>
-      <p style={{ color: '#555' }}>
+    <section className="stack">
+      <h1 style={{ margin: 0 }}>Änderungsprotokoll</h1>
+      <p className="page-empty" style={{ margin: 0 }}>
         Wer hat wann was geändert? Zugangsdaten und andere Geheimnisse erscheinen hier nie. Nur
         Administratoren sehen das Protokoll.
       </p>
-      <form
-        role="search"
-        onSubmit={(e) => e.preventDefault()}
-        style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '12px 0' }}
-      >
-        <label>
-          Aktion{' '}
-          <select value={action} onChange={(e) => setAction(e.target.value)}>
-            <option value="">alle</option>
-            {Object.entries(actionLabels).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Von <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <label>
-          Bis <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-        </label>
+      <form role="search" onSubmit={(e) => e.preventDefault()} className="toolbar">
+        <FormField id="audit-action" label="Aktion">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={action}
+              options={[
+                { value: '', label: 'alle' },
+                ...Object.entries(actionLabels).map(([value, label]) => ({ value, label })),
+              ]}
+              placeholder="alle"
+              onChange={setAction}
+            />
+          )}
+        </FormField>
+        <FormField id="audit-from" label="Von">
+          {({ id }) => (
+            <InputText
+              id={id}
+              type="date"
+              value={from}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFrom(e.target.value)}
+            />
+          )}
+        </FormField>
+        <FormField id="audit-to" label="Bis">
+          {({ id }) => (
+            <InputText
+              id={id}
+              type="date"
+              value={to}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTo(e.target.value)}
+            />
+          )}
+        </FormField>
       </form>
 
-      {log.isLoading && <Loading />}
-      {log.error && <ErrorState message={log.error.message} />}
-      {log.isSuccess && items.length === 0 && <Empty>Keine Einträge für diese Filter.</Empty>}
-      {items.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left' }}>
-              <th>Zeitpunkt</th>
-              <th>Wer</th>
-              <th>Was</th>
-              <th>Gegenstand</th>
-              <th>Einzelheiten</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((e) => (
-              <tr key={e.id} style={{ borderTop: '1px solid #ddd', verticalAlign: 'top' }}>
-                <td style={{ paddingRight: 12 }}>{new Date(e.at).toLocaleString('de-CH')}</td>
-                <td style={{ paddingRight: 12 }}>{e.actorName ?? 'System'}</td>
-                <td style={{ paddingRight: 12 }}>{actionLabels[e.action] ?? e.action}</td>
-                <td style={{ paddingRight: 12 }}>
-                  {e.targetType === 'product'
-                    ? productName(e.targetId)
-                    : `${e.targetType} ${e.targetId.slice(0, 8)}`}
-                </td>
-                <td>
-                  <code style={{ fontSize: 12 }}>{JSON.stringify(e.details)}</code>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {log.hasNextPage && (
-        <button onClick={() => log.fetchNextPage()} disabled={log.isFetchingNextPage}>
-          Mehr laden
-        </button>
-      )}
+      <DataGrid
+        caption="Änderungsprotokoll"
+        data={items}
+        rowKey={(e) => e.id}
+        loading={log.isLoading}
+        error={log.error?.message}
+        empty="Keine Einträge für diese Filter."
+        hasMore={Boolean(log.hasNextPage)}
+        loadingMore={log.isFetchingNextPage}
+        onLoadMore={() => log.fetchNextPage()}
+        columns={[
+          { key: 'at', header: 'Zeitpunkt', cell: (e) => new Date(e.at).toLocaleString('de-CH') },
+          { key: 'who', header: 'Wer', cell: (e) => e.actorName ?? 'System' },
+          { key: 'what', header: 'Was', cell: (e) => actionLabels[e.action] ?? e.action },
+          {
+            key: 'target',
+            header: 'Gegenstand',
+            cell: (e) =>
+              e.targetType === 'product'
+                ? productName(e.targetId)
+                : `${e.targetType} ${e.targetId.slice(0, 8)}`,
+          },
+          {
+            key: 'details',
+            header: 'Einzelheiten',
+            cell: (e) => <code style={{ fontSize: 12 }}>{JSON.stringify(e.details)}</code>,
+          },
+        ]}
+      />
     </section>
   );
 }

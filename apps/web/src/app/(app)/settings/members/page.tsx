@@ -1,12 +1,20 @@
 'use client';
 
+import { Button } from '@primereact/ui/button';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Empty, ErrorState, Loading } from '@/components/shell/states';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { DataGrid } from '@/components/ui/DataGrid';
+import { FormField } from '@/components/ui/FormField';
+import { notify } from '@/components/ui/Notifier';
+import { InlineError } from '@/components/ui/PageStates';
+import { SelectField } from '@/components/ui/SelectField';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
 type Role = 'admin' | 'editor';
 const roleLabels: Record<Role, string> = { admin: 'Administrator', editor: 'Bearbeiter' };
+const roleOptions = Object.entries(roleLabels).map(([value, label]) => ({ value, label }));
 
 export default function MembersPage() {
   const api = useApi();
@@ -16,6 +24,7 @@ export default function MembersPage() {
   const [newUser, setNewUser] = useState('');
   const [newRole, setNewRole] = useState<Role>('editor');
   const [error, setError] = useState<string | null>(null);
+  const [toRemove, setToRemove] = useState<{ userId: string; name: string } | null>(null);
 
   const products = useQuery({
     queryKey: ['products'],
@@ -46,6 +55,7 @@ export default function MembersPage() {
         }),
       );
       qc.setQueryData(['members', selected], list);
+      notify.success(role ? 'Rolle gespeichert' : 'Mitglied entfernt');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Rolle konnte nicht geändert werden');
     }
@@ -54,69 +64,70 @@ export default function MembersPage() {
   const candidates = users.data?.filter((u) => !members.data?.some((m) => m.userId === u.id)) ?? [];
 
   return (
-    <section>
-      <h1>Rollen</h1>
-      <p style={{ color: '#555' }}>
+    <section className="stack">
+      <h1 style={{ margin: 0 }}>Rollen</h1>
+      <p className="page-empty" style={{ margin: 0 }}>
         Alle angemeldeten Benutzer dürfen lesen. Schreiben und Verwalten richtet sich nach der Rolle
         im Produkt. Nur Administratoren des Produkts ändern Rollen; ein Produkt behält mindestens
         einen Administrator.
       </p>
-      <label>
-        Produkt{' '}
-        <select value={selected} onChange={(e) => setProductId(e.target.value)}>
-          {products.data?.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      {error && (
-        <p role="alert" style={{ color: '#b00020' }}>
-          {error}
-        </p>
-      )}
+      <div className="toolbar">
+        <FormField id="members-product" label="Produkt">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={selected}
+              options={(products.data ?? []).map((p) => ({ value: p.id, label: p.name }))}
+              onChange={setProductId}
+            />
+          )}
+        </FormField>
+      </div>
+      {error && <InlineError>{error}</InlineError>}
 
       {members.isLoading && <Loading />}
       {members.error && <ErrorState message={members.error.message} />}
       {members.data?.length === 0 && <Empty>Dieses Produkt hat noch keine Mitglieder.</Empty>}
       {members.data && members.data.length > 0 && (
-        <table style={{ borderCollapse: 'collapse', margin: '12px 0' }}>
-          <thead>
-            <tr style={{ textAlign: 'left' }}>
-              <th>Name</th>
-              <th>E-Mail</th>
-              <th>Rolle</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {members.data.map((m) => (
-              <tr key={m.userId} style={{ borderTop: '1px solid #ddd' }}>
-                <td style={{ paddingRight: 16 }}>{m.name}</td>
-                <td style={{ paddingRight: 16 }}>{m.email ?? '–'}</td>
-                <td style={{ paddingRight: 16 }}>
-                  <select
-                    aria-label={`Rolle von ${m.name}`}
-                    value={m.role}
-                    onChange={(e) => setRole(m.userId, e.target.value as Role)}
-                  >
-                    {Object.entries(roleLabels).map(([v, l]) => (
-                      <option key={v} value={v}>
-                        {l}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <button type="button" onClick={() => setRole(m.userId, null)}>
-                    Entfernen
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DataGrid
+          caption="Mitglieder"
+          data={members.data}
+          rowKey={(m) => m.userId}
+          columns={[
+            { key: 'name', header: 'Name', cell: (m) => m.name },
+            { key: 'email', header: 'E-Mail', cell: (m) => m.email ?? '–' },
+            {
+              key: 'role',
+              header: 'Rolle',
+              cell: (m) => (
+                <FormField id={`role-${m.userId}`} label={`Rolle von ${m.name}`}>
+                  {({ id }) => (
+                    <SelectField
+                      id={id}
+                      value={m.role}
+                      options={roleOptions}
+                      onChange={(v) => void setRole(m.userId, v as Role)}
+                    />
+                  )}
+                </FormField>
+              ),
+            },
+            {
+              key: 'remove',
+              header: 'Aktion',
+              cell: (m) => (
+                <Button
+                  type="button"
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setToRemove({ userId: m.userId, name: m.name })}
+                >
+                  Entfernen
+                </Button>
+              ),
+            },
+          ]}
+        />
       )}
 
       <form
@@ -126,34 +137,51 @@ export default function MembersPage() {
           await setRole(newUser, newRole);
           setNewUser('');
         }}
-        style={{ display: 'flex', gap: 8, alignItems: 'end' }}
+        className="toolbar"
         aria-label="Mitglied hinzufügen"
       >
-        <label>
-          Benutzer
-          <select value={newUser} onChange={(e) => setNewUser(e.target.value)}>
-            <option value="">– wählen –</option>
-            {candidates.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Rolle
-          <select value={newRole} onChange={(e) => setNewRole(e.target.value as Role)}>
-            {Object.entries(roleLabels).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" disabled={!newUser}>
-          Hinzufügen
-        </button>
+        <FormField id="member-user" label="Benutzer">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={newUser}
+              options={candidates.map((u) => ({ value: u.id, label: u.name }))}
+              placeholder="– wählen –"
+              onChange={setNewUser}
+            />
+          )}
+        </FormField>
+        <FormField id="member-role" label="Rolle">
+          {({ id }) => (
+            <SelectField
+              id={id}
+              value={newRole}
+              options={roleOptions}
+              onChange={(v) => setNewRole(v as Role)}
+            />
+          )}
+        </FormField>
+        <div className="form-field">
+          <Button type="submit" disabled={!newUser}>
+            Hinzufügen
+          </Button>
+        </div>
       </form>
+
+      <ConfirmDialog
+        open={toRemove !== null}
+        title={toRemove ? `${toRemove.name} entfernen?` : ''}
+        confirmLabel="Entfernen"
+        danger
+        onCancel={() => setToRemove(null)}
+        onConfirm={() => {
+          const target = toRemove;
+          setToRemove(null);
+          if (target) void setRole(target.userId, null);
+        }}
+      >
+        Die Person verliert ihre Schreibrechte auf dieses Produkt.
+      </ConfirmDialog>
     </section>
   );
 }

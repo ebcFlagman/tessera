@@ -1,3 +1,7 @@
+'use client';
+
+import { Card } from '@primereact/ui/card';
+
 export function StatTile({
   label,
   value,
@@ -8,10 +12,16 @@ export function StatTile({
   hint?: string | undefined;
 }) {
   return (
-    <div className="tile" data-testid={`tile-${label}`}>
-      <div className="value">{value}</div>
-      <div className="label">{label}</div>
-      {hint && <div className="hint">{hint}</div>}
+    <div data-testid={`tile-${label}`}>
+      <Card.Root>
+        <Card.Body>
+          <Card.Content>
+            <div style={{ fontSize: '2rem', fontWeight: 600, lineHeight: 1.1 }}>{value}</div>
+            <div>{label}</div>
+            {hint && <div style={{ fontSize: '0.8rem', opacity: 0.75 }}>{hint}</div>}
+          </Card.Content>
+        </Card.Body>
+      </Card.Root>
     </div>
   );
 }
