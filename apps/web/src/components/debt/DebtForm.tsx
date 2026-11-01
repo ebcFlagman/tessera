@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { NoProductNotice } from '@/components/shell/NoProductNotice';
 import { kindLabels, statusLabels } from './labels';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
@@ -93,6 +94,8 @@ export function DebtForm(props: {
 
   const set = <K extends keyof DebtFormValues>(k: K, value: DebtFormValues[K]) =>
     setV((prev) => ({ ...prev, [k]: value }));
+
+  if (products.isSuccess && products.data.length === 0) return <NoProductNotice />;
 
   return (
     <form

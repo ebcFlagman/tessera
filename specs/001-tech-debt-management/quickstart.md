@@ -23,6 +23,9 @@ pnpm --filter @tessera/db migrate && pnpm --filter @tessera/db seed
 pnpm dev                                                 # web (3000), api (3001), worker
 ```
 
+Auf einer **leeren** Instanz (ohne `seed`) meldet man sich an und legt unter *Produkte* das erste Produkt an;
+wer das tut, wird dessen Administrator (siehe README, „Erste Schritte“).
+
 Keycloak braucht nach dem ersten Start etwa eine Minute. Die Testbenutzer `admin`, `editor` und `norole`
 haben ihren Namen als Passwort. Für den Import-E2E-Test muss in der `.env` `SOURCE_ALLOWED_HOSTS=localhost`
 stehen (dann die Dev-Server neu starten).

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { kindLabels, statusLabels } from '@/components/debt/labels';
 import { SourceBadge } from '@/components/debt/SourceBadge';
 import { ExportButton } from '@/components/export/ExportButton';
+import { NoProductNotice } from '@/components/shell/NoProductNotice';
 import { Empty, ErrorState, Loading } from '@/components/shell/states';
 import { unwrap, useApi, useApiReady } from '@/lib/api';
 
@@ -77,6 +78,8 @@ export default function RegisterPage() {
           <Link href="/debt/new">Neue Schuld erfassen</Link>
         </span>
       </div>
+
+      {products.isSuccess && products.data.length === 0 && <NoProductNotice />}
 
       <form
         role="search"

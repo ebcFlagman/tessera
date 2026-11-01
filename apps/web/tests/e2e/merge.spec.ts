@@ -14,6 +14,8 @@ test('Duplikat zusammenführen: Verlauf geht über, das Duplikat verschwindet au
   const keepUrl = await createDebt(page, keep);
   await page.goto(keepUrl);
 
+  // the duplicate is found by searching, no matter how many debts the product has
+  await page.getByLabel('Duplikat suchen').fill(duplicate);
   await page.getByRole('combobox', { name: /^Duplikat/ }).selectOption({ label: duplicate });
   await page.getByRole('button', { name: 'Zusammenführen' }).click();
 

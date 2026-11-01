@@ -30,6 +30,7 @@ test('Hauptansichten haben keine WCAG-2.1-AA-Verstöße', async ({ page }) => {
     [new URL(debtUrl).pathname, 'Barrierefreiheit', 'Schuld Detail'],
     ['/integrations', 'Integrationen', 'Integrationen'],
     ['/settings/assessment-model', 'Bewertungsmodell', 'Bewertungsmodell'],
+    ['/settings/products', 'Produkte', 'Produkte'],
     ['/settings/members', 'Rollen', 'Rollen'],
     ['/settings/teams', 'Teams', 'Teams'],
     ['/settings/audit', 'Änderungsprotokoll', 'Protokoll'],

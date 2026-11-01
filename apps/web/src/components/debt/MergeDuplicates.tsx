@@ -36,14 +36,21 @@ export function MergeDuplicates({ debtId, productId }: { debtId: string; product
   const ready = useApiReady();
   const qc = useQueryClient();
   const [duplicateId, setDuplicateId] = useState('');
+  const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // searched on the server: a register can hold far more debts than a list could show
+  const term = search.trim();
   const candidates = useQuery({
-    queryKey: ['merge-candidates', productId],
+    queryKey: ['merge-candidates', productId, term],
     enabled: ready,
     queryFn: async () =>
       unwrap(
-        await api.GET('/debts', { params: { query: { productId, limit: 100, sort: 'title' } } }),
+        await api.GET('/debts', {
+          params: {
+            query: { productId, limit: 20, sort: '-createdAt', ...(term ? { q: term } : {}) },
+          },
+        }),
       ),
   });
   const options = candidates.data?.items.filter((d) => d.id !== debtId) ?? [];
@@ -80,6 +87,10 @@ export function MergeDuplicates({ debtId, productId }: { debtId: string; product
         }}
         style={{ display: 'flex', gap: 8, alignItems: 'end' }}
       >
+        <label>
+          Duplikat suchen
+          <input value={search} onChange={(e) => setSearch(e.target.value)} />
+        </label>
         <label>
           Duplikat
           <select value={duplicateId} onChange={(e) => setDuplicateId(e.target.value)}>

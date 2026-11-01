@@ -59,6 +59,21 @@ pnpm test:e2e                              # Playwright; Stack und `pnpm dev` (i
 
 Nach jeder API-Änderung: `pnpm openapi:generate && pnpm api-types:generate` und beides einchecken.
 
+## Erste Schritte auf einer leeren Instanz
+
+Tessera verwaltet keine Konten: Benutzer und Passwörter liegen in Keycloak, „Administrator“ ist eine Rolle
+pro Produkt in Tessera.
+
+1. Konto in Keycloak anlegen (lokal: http://localhost:8080, Realm `tessera`, *Users → Add user*, dann ein Passwort setzen).
+2. In Tessera anmelden und unter **Produkte** (`/settings/products`) das **erste Produkt anlegen**. Wer das
+   erste Produkt anlegt, wird dessen Administrator. Solange kein Produkt existiert, weisen Register und
+   Schuldenformular mit einem Hinweis darauf hin.
+3. Weitere Personen berechtigt ein Administrator unter **Rollen** (`/settings/members`); weitere Produkte legen
+   ebenfalls nur Administratoren an.
+
+Hinweis: Auf einer leeren Instanz kann **jede angemeldete Person** das erste Produkt anlegen und so die erste
+Administratorin werden. Die Anmeldung ist dafür die Schranke: Registrierung und Zugang regelt Keycloak.
+
 ## Betrieb (Container)
 
 Drei Images, gebaut aus dem Repository-Wurzelverzeichnis (die Konfiguration steht in
