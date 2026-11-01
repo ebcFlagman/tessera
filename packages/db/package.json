@@ -10,7 +10,8 @@
     "migrate": "prisma migrate deploy",
     "migrate:dev": "prisma migrate dev",
     "seed": "tsx --env-file=.env prisma/seed.ts",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
